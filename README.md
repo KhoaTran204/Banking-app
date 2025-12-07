@@ -18,7 +18,7 @@ npm install -g nodemon
 📁 2. Cấu trúc dự án
 Banking_app/
 -frontend/     # giao diện người dùng (UI)
-- backend/      # server API (NodeJS + Express)
+-backend/      # server API (NodeJS + Express)
 
 🚀 3. Cài đặt & Chạy Frontend (Terminal 1)
 
