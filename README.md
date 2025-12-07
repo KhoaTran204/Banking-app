@@ -3,24 +3,7 @@ Banking App – Hướng dẫn Cài đặt & Chạy Dự án
 Dự án bao gồm hai phần hoạt động độc lập: Frontend và Backend.
 Để hệ thống hoạt động đầy đủ, bạn cần khởi chạy hai terminal khác nhau.
 
-📌 1. Yêu cầu trước khi cài đặt
-
-Đảm bảo máy bạn đã cài:
-
-Node.js (khuyến nghị phiên bản mới)
-
-npm (đi kèm Node.js)
-
-nodemon (nếu chưa có, cài bằng)
-
-npm install -g nodemon
-
-📁 2. Cấu trúc dự án
-Banking_app/
--frontend/     # giao diện người dùng (UI)
--backend/      # server API (NodeJS + Express)
-
-🚀 3. Cài đặt & Chạy Frontend (Terminal 1)
+🚀 1. Cài đặt & Chạy Frontend (Terminal 1)
 
 Mở Terminal 1
 
@@ -43,7 +26,7 @@ npm run dev
 
 http://localhost:5173/
 
-⚙️ 4. Cài đặt & Chạy Backend (Terminal 2)
+⚙️ 2. Cài đặt & Chạy Backend (Terminal 2)
 
 Mở Terminal 2
 
@@ -64,7 +47,7 @@ nodemon
 
 👉 Backend sẽ chạy trên port cấu hình (thường là http://localhost:8080).
 
-🔗 5. Vì sao phải chạy bằng 2 terminal?
+🔗 3. Vì sao phải chạy bằng 2 terminal?
 
 Frontend và Backend là hai ứng dụng độc lập:
 
@@ -74,7 +57,7 @@ Backend xử lý API, database, xác thực,...
 
 Hai phần này phải chạy song song, vì vậy cần mở 2 terminal.
 
-🎯 6. Truy cập ứng dụng
+🎯 4. Truy cập ứng dụng
 
 Sau khi cả frontend và backend chạy thành công:
 
