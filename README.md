@@ -17,9 +17,8 @@ npm install -g nodemon
 
 📁 2. Cấu trúc dự án
 Banking_app/
-│
-├── frontend/     # giao diện người dùng (UI)
-└── backend/      # server API (NodeJS + Express)
+-frontend/     # giao diện người dùng (UI)
+- backend/      # server API (NodeJS + Express)
 
 🚀 3. Cài đặt & Chạy Frontend (Terminal 1)
 
@@ -63,7 +62,7 @@ Chạy server backend bằng nodemon:
 nodemon
 
 
-👉 Backend sẽ chạy trên port cấu hình (thường là http://localhost:3000).
+👉 Backend sẽ chạy trên port cấu hình (thường là http://localhost:8080).
 
 🔗 5. Vì sao phải chạy bằng 2 terminal?
 
