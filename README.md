@@ -22,9 +22,7 @@ Chạy frontend:
 npm run dev
 
 
-👉 Sau khi chạy, ứng dụng frontend sẽ hiển thị địa chỉ (thường là):
-
-http://localhost:5173/
+👉 Sau khi chạy, ứng dụng frontend sẽ hiển thị địa chỉ http://localhost:5173/
 
 ⚙️ 2. Cài đặt & Chạy Backend (Terminal 2)
 
@@ -45,7 +43,7 @@ Chạy server backend bằng nodemon:
 nodemon
 
 
-👉 Backend sẽ chạy trên port cấu hình (thường là http://localhost:8080).
+👉 Backend sẽ chạy trên port cấu hình http://localhost:8080/
 
 🔗 3. Vì sao phải chạy bằng 2 terminal?
 
