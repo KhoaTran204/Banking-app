@@ -1,35 +1,86 @@
-Hướng dẫn chạy dự án
+Banking App – Hướng dẫn Cài đặt & Chạy Dự án
 
-Dự án gồm frontend và backend, vì vậy cần chạy ở 2 terminal khác nhau để cả hai phần hoạt động đồng thời.
+Dự án bao gồm hai phần hoạt động độc lập: Frontend và Backend.
+Để hệ thống hoạt động đầy đủ, bạn cần khởi chạy hai terminal khác nhau.
 
-1. Chạy Frontend
+📌 1. Yêu cầu trước khi cài đặt
 
-Mở terminal thứ nhất, di chuyển vào thư mục frontend và chạy lệnh:
+Đảm bảo máy bạn đã cài:
+
+Node.js (khuyến nghị phiên bản mới)
+
+npm (đi kèm Node.js)
+
+nodemon (nếu chưa có, cài bằng)
+
+npm install -g nodemon
+
+📁 2. Cấu trúc dự án
+Banking_app/
+│
+├── frontend/     # giao diện người dùng (UI)
+└── backend/      # server API (NodeJS + Express)
+
+🚀 3. Cài đặt & Chạy Frontend (Terminal 1)
+
+Mở Terminal 1
+
+Di chuyển vào thư mục frontend:
+
+cd frontend
+
+
+Cài đặt dependency:
+
+npm install
+
+
+Chạy frontend:
 
 npm run dev
 
 
-Lệnh này sẽ khởi động giao diện người dùng (UI).
-Sau khi chạy, terminal sẽ hiển thị địa chỉ để truy cập ứng dụng (thường là: http://localhost:5173 hoặc tương tự).
+👉 Sau khi chạy, ứng dụng frontend sẽ hiển thị địa chỉ (thường là):
 
-2. Chạy Backend
+http://localhost:5173/
 
-Mở terminal thứ hai, di chuyển vào thư mục backend và chạy lệnh:
+⚙️ 4. Cài đặt & Chạy Backend (Terminal 2)
+
+Mở Terminal 2
+
+Di chuyển vào thư mục backend:
+
+cd backend
+
+
+Cài đặt dependency:
+
+npm install
+
+
+Chạy server backend bằng nodemon:
 
 nodemon
 
 
-Lệnh này sẽ khởi động server backend (NodeJS + Express).
-Công cụ nodemon giúp tự động chạy lại server mỗi khi bạn thay đổi mã nguồn.
+👉 Backend sẽ chạy trên port cấu hình (thường là http://localhost:3000).
 
-Tóm tắt
+🔗 5. Vì sao phải chạy bằng 2 terminal?
 
-Frontend và Backend là hai phần tách biệt.
+Frontend và Backend là hai ứng dụng độc lập:
 
-Cần mở 2 terminal để chạy cùng lúc:
+Frontend hiển thị giao diện.
 
-Terminal 1: npm run dev → chạy frontend
+Backend xử lý API, database, xác thực,...
 
-Terminal 2: nodemon → chạy backend
+Hai phần này phải chạy song song, vì vậy cần mở 2 terminal.
 
-Sau đó bạn có thể truy cập ứng dụng bằng trình duyệt qua địa chỉ frontend.
+🎯 6. Truy cập ứng dụng
+
+Sau khi cả frontend và backend chạy thành công:
+
+Mở trình duyệt
+
+Truy cập frontend theo địa chỉ hiển thị (vd: http://localhost:5173)
+
+Frontend sẽ tự động gọi API từ backend
