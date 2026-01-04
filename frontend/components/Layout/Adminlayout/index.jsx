@@ -9,6 +9,7 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   UploadOutlined,
+  UserAddOutlined,
   UserOutlined,
   VideoCameraOutlined,
 } from "@ant-design/icons";
@@ -35,6 +36,16 @@ const Adminlayout = ({ children }) => {
       key: "/admin",
       icon: <DashOutlined />,
       label: <Link to="/admin">Dashboard</Link>,
+    },
+    {
+      key: "/admin/new-account",
+      icon: <UserAddOutlined />,
+      label: <Link to="/admin/new-account">New Account</Link>,
+    },
+    {
+      key: "/admin/new-transaction",
+      icon: <UserAddOutlined />,
+      label: <Link to="/admin/new-transaction">New Transaction</Link>,
     },
     {
       key: "/admin/new-employee",

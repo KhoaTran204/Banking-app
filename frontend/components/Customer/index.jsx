@@ -1,0 +1,33 @@
+import Customerlayout from "../Layout/Customerlayout";
+import Dashboard from "../Shared/Dashboard";
+import useSWR from "swr";
+import { fetchData } from "../../modules/modules";
+import { Card } from "antd";
+
+import TransactionTable from "../Shared/TransactionTable";
+
+const CustomerDashboard = () => {
+  //get userInfo
+  const userInfo = JSON.parse(sessionStorage.getItem("userInfo"));
+  const { data: trData, error: trError } = useSWR(
+    `/api/transaction/summary?branch=${userInfo.branch}`,
+    fetchData,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      refreshInterval: 1200000,
+    }
+  );
+
+  return (
+    <Customerlayout>
+      <Dashboard data={trData && trData} />
+      <div className="mt-8">
+        <Card title="Transactions history">
+          <TransactionTable query={{ branch: userInfo?.branch }} />
+        </Card>
+      </div>
+    </Customerlayout>
+  );
+};
+export default CustomerDashboard;

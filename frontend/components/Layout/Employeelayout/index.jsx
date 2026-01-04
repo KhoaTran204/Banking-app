@@ -5,6 +5,7 @@ import {
   MenuUnfoldOutlined,
   LogoutOutlined,
   AccountBookOutlined,
+  BranchesOutlined,
 } from "@ant-design/icons";
 import { Button, Layout, Menu, theme } from "antd";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -19,12 +20,14 @@ const Employeelayout = ({ children }) => {
 
   const { pathname } = useLocation();
   console.log(pathname);
+
   // logout Function
   const logoutFunc = () => {
     sessionStorage.removeItem("userInfo");
     cookies.remove("authToken");
     navigate("/");
   };
+
   const items = [
     {
       key: "/employee",
@@ -37,7 +40,12 @@ const Employeelayout = ({ children }) => {
       label: <Link to="/employee/new-account">New Account</Link>,
     },
     {
-      key: "/admin/logout",
+      key: "/employee/new-transaction",
+      icon: <BranchesOutlined />,
+      label: <Link to="/employee/new-transaction">New Transaction</Link>,
+    },
+    {
+      key: "/employee/logout",
       icon: <LogoutOutlined />,
       label: (
         <Button

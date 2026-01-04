@@ -38,8 +38,8 @@ const NewEmployee = () => {
   // state collection
   const [empForm] = Form.useForm();
   const [messageApi, contex] = message.useMessage();
-  const [loading, setLoading] = useState(false);
   const [photo, setPhoto] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [allEmployee, setAllEmployee] = useState([]);
   const [finalEmployee, setFinalEmployee] = useState([]);
   const [allBranch, setAllBranch] = useState([]);
@@ -72,7 +72,9 @@ const NewEmployee = () => {
       try {
         const httpReq = http();
         const { data } = await httpReq.get("/api/users");
-        setAllEmployee(data.data);
+        setAllEmployee(
+          data?.data.filter((item) => item.userType != "customer")
+        );
         setFinalEmployee(data.data);
       } catch (err) {
         messageApi.error("Unable to fetch data !");
@@ -132,6 +134,32 @@ const NewEmployee = () => {
     }
   };
 
+  //update employee
+  const onEditUser = async (obj) => {
+    setEdit(obj);
+    empForm.setFieldsValue(obj);
+  };
+  const onUpdate = async (values) => {
+    try {
+      setLoading(true);
+      let finalObj = trimData(values);
+      delete finalObj.password;
+      if (photo) {
+        finalObj.profile = photo;
+      }
+      const httpReq = http();
+      await httpReq.put(`/api/users/${edit._id}`, finalObj);
+      messageApi.success("Employee update successfully !");
+      setNo(no + 1);
+      setEdit(null);
+      setPhoto(null);
+      empForm.resetFields();
+    } catch (err) {
+      messageApi.error("Unable to update employee");
+    } finally {
+      setLoading(false);
+    }
+  };
   // delete employee
   const onDeleteUser = async (id) => {
     try {
@@ -144,31 +172,6 @@ const NewEmployee = () => {
     }
   };
 
-  //update employee
-  const onEditUser = async (obj) => {
-    setEdit(obj);
-    empForm.setFieldsValue(obj);
-  };
-  const onUpdate = async (values) => {
-    try {
-      setLoading(true);
-
-      let finalObj = trimData(values);
-      if (photo) {
-        finalObj.profile = photo;
-      }
-      const httpReq = http();
-      await httpReq.put(`/api/users/${edit._id}`, finalObj);
-      messageApi.success("Employee update successfully !");
-      setNo(no + 1);
-      setEdit(null);
-      empForm.resetFields();
-    } catch (err) {
-      messageApi.error("Unable to update employee");
-    } finally {
-      setLoading(false);
-    }
-  };
   //handle upload
   const handleUpload = async (e) => {
     const file = e.target.files[0];
@@ -188,17 +191,17 @@ const NewEmployee = () => {
     let filter =
       finalEmployee &&
       finalEmployee.filter((emp) => {
-        if (emp.fullname.toLowerCase().indexOf(value) != -1) {
+        if (emp?.fullname.toLowerCase().indexOf(value) != -1) {
           return emp;
-        } else if (emp.userType.toLowerCase().indexOf(value) != -1) {
+        } else if (emp?.userType.toLowerCase().indexOf(value) != -1) {
           return emp;
-        } else if (emp.email.toLowerCase().indexOf(value) != -1) {
+        } else if (emp?.email.toLowerCase().indexOf(value) != -1) {
           return emp;
-        } else if (emp.branch.toLowerCase().indexOf(value) != -1) {
+        } else if (emp?.branch.toLowerCase().indexOf(value) != -1) {
           return emp;
-        } else if (emp.mobile.toLowerCase().indexOf(value) != -1) {
+        } else if (emp?.mobile.toLowerCase().indexOf(value) != -1) {
           return emp;
-        } else if (emp.address.toLowerCase().indexOf(value) != -1) {
+        } else if (emp?.address.toLowerCase().indexOf(value) != -1) {
           return emp;
         }
       });
@@ -341,7 +344,7 @@ const NewEmployee = () => {
                 <Input type="number" />
               </Item>
               <Item name="email" label="Email" rules={[{ required: true }]}>
-                <Input />
+                <Input disabled={edit ? true : false} />
               </Item>
               <Item
                 name="password"

@@ -72,10 +72,122 @@ const deleteData = async (req, res, schema) => {
     });
   }
 };
+//find by account no
+const findByAccountNo = async (req, res, schema) => {
+  try {
+    const query = req.body;
+    const dbRes = await dbService.findOneRecord(query, schema);
+    return res.status(200).json({
+      message: "Record deleted !",
+      data: dbRes,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
+
+const getTransactionSummary = async (req, res, schema) => {
+  const { branch } = req.query;
+
+  try {
+    const summary = await schema.aggregate([
+      {
+        $match: { branch },
+      },
+      {
+        $group: {
+          _id: null,
+          totalCredit: {
+            $sum: {
+              $cond: [
+                { $eq: ["$transactionType", "cr"] },
+                "$transactionAmount",
+                0,
+              ],
+            },
+          },
+          totalDedit: {
+            $sum: {
+              $cond: [
+                { $eq: ["$transactionType", "dr"] },
+                "$transactionAmount",
+                0,
+              ],
+            },
+          },
+          creditCount: {
+            $sum: {
+              $cond: [{ $eq: ["$transactionType", "cr"] }, 1, 0],
+            },
+          },
+          deditCount: {
+            $sum: {
+              $cond: [{ $eq: ["$transactionType", "dr"] }, 1, 0],
+            },
+          },
+          totalTransactions: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          totalCredit: 1,
+          totalDedit: 1,
+          totalTransactions: 1,
+          creditCount: 1,
+          deditCount: 1,
+          balance: { $subtract: ["$totalCredit", "$totalDedit"] },
+        },
+      },
+    ]);
+    if (summary.length === 0) {
+      return res.status(404).json({
+        message: "No matching transactions found!",
+      });
+    }
+    res.status(200).json(summary[0]);
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal caculating summary",
+      error,
+    });
+  }
+};
+
+const getPaginatedTransactions = async (req, res, schema) => {
+  try {
+    const { accountNo, branch, page = 1, pageSize = 10 } = req.query;
+
+    const filter = {};
+    if (accountNo) filter.accountNo = accountNo;
+    if (branch) filter.branch = branch;
+
+    const skip = (parseInt(page) - 1) * parseInt(pageSize);
+    const limit = parseInt(pageSize);
+
+    const [transactions, total] = await Promise.all([
+      schema.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      schema.countDocuments(filter),
+    ]);
+    res.status(200).json({
+      data: transactions,
+      total,
+      page: parseInt(page),
+      pageSize: parseInt(pageSize),
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching transactions", error });
+  }
+};
 
 module.exports = {
   createData,
   getData,
   updateData,
   deleteData,
+  findByAccountNo,
+  getTransactionSummary,
+  getPaginatedTransactions,
 };
