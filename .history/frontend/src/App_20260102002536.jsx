@@ -33,7 +33,6 @@ const CustomerDashboard = lazy(() => import("../components/Customer"));
 const CustomerTransactions = lazy(() =>
   import("../components/Customer/Transactions")
 );
-const Transfer = lazy(() => import("../components/Customer/Transfer"));
 
 const App = () => {
   return (
@@ -77,7 +76,6 @@ const App = () => {
           >
             <Route index element={<CustomerDashboard />} />
             <Route path="transaction" element={<CustomerTransactions />} />
-            <Route path="transfer" element={<Transfer />} />
             <Route path="*" element={<PageNotFound />} />
           </Route>
           {/*End customer related routes*/}

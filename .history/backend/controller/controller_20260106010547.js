@@ -2,6 +2,7 @@ const { schema } = require("../model/users.model");
 const dbService = require("../services/db.service");
 const Customer = require("../model/customer.model");
 const Transaction = require("../model/transaction.model");
+const mongoose = require("mongoose");
 
 const getData = async (req, res, schema) => {
   try {
@@ -205,56 +206,78 @@ const getPaginatedTransactions = async (req, res, schema) => {
 const transferMoney = async (req, res) => {
   const { fromAccountNo, toBrandingId, toBankCardNo, amount } = req.body;
 
+  if (!fromAccountNo || !toBrandingId || !toBankCardNo || !amount) {
+    return res.status(400).json({
+      message: "Missing required fields",
+    });
+  }
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
+    // 1️⃣ TIM NGUOI GUI
     const sender = await Customer.findOne({
       accountNo: Number(fromAccountNo),
-    });
+    }).session(session);
 
     if (!sender) {
-      return res.status(404).json({ message: "Sender not found" });
+      throw new Error("Sender not found");
     }
 
+    // 2️⃣ KIEM TRA SO DU
     if (sender.finalBalance < amount) {
-      return res.status(400).json({ message: "Insufficient balance" });
+      throw new Error("Insufficient balance");
     }
 
+    // 3️⃣ TIM NGUOI NHAN (THEO BRANDING + BANK CARD)
     const receiver = await Customer.findOne({
       bankCardNo: toBankCardNo,
-    });
+      brandingId: toBrandingId,
+    }).session(session);
 
     if (!receiver) {
-      return res.status(404).json({ message: "Receiver not found" });
+      throw new Error("Receiver not found");
     }
 
-    // cap nhat so du
+    // 4️⃣ TRU & CONG TIEN
     sender.finalBalance -= amount;
     receiver.finalBalance += amount;
 
-    await sender.save();
-    await receiver.save();
+    await sender.save({ session });
+    await receiver.save({ session });
 
-    // ghi transaction
-    await Transaction.create([
-      {
-        accountNo: sender.accountNo,
-        transactionType: "dr",
-        transactionAmount: amount,
-        branch: sender.branch,
-      },
-      {
-        accountNo: receiver.accountNo,
-        transactionType: "cr",
-        transactionAmount: amount,
-        branch: receiver.branch,
-      },
-    ]);
+    // 5️⃣ LUU TRANSACTION
+    await Transaction.create(
+      [
+        {
+          accountNo: sender.accountNo,
+          transactionType: "dr",
+          transactionAmount: amount,
+          branch: sender.branch,
+        },
+        {
+          accountNo: receiver.accountNo,
+          transactionType: "cr",
+          transactionAmount: amount,
+          branch: receiver.branch,
+        },
+      ],
+      { session }
+    );
 
-    res.status(200).json({ message: "Transfer successful" });
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(200).json({
+      message: "Transfer successful",
+    });
   } catch (err) {
-    console.error("TRANSFER ERROR:", err);
-    res.status(500).json({
-      message: "Transfer failed",
-      error: err.message,
+    await session.abortTransaction();
+    session.endSession();
+
+    res.status(400).json({
+      message: err.message,
     });
   }
 };

@@ -220,6 +220,7 @@ const transferMoney = async (req, res) => {
 
     const receiver = await Customer.findOne({
       bankCardNo: toBankCardNo,
+      brandingId: toBrandingId,
     });
 
     if (!receiver) {

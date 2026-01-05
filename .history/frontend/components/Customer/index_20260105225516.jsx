@@ -10,7 +10,7 @@ const CustomerDashboard = () => {
   //get userInfo
   const userInfo = JSON.parse(sessionStorage.getItem("userInfo"));
   const { data: trData, error: trError } = useSWR(
-    `/api/transaction/summary?accountNo=${userInfo.accountNo}`,
+    `/api/transaction/summary?branch=${userInfo.accountNo}`,
     fetchData,
     {
       revalidateOnFocus: false,
@@ -18,7 +18,6 @@ const CustomerDashboard = () => {
       refreshInterval: 1200000,
     }
   );
-  console.log("userInfo:", userInfo);
 
   return (
     <Customerlayout>

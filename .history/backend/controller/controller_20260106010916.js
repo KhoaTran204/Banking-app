@@ -220,6 +220,7 @@ const transferMoney = async (req, res) => {
 
     const receiver = await Customer.findOne({
       bankCardNo: toBankCardNo,
+      brandingId: toBrandingId,
     });
 
     if (!receiver) {
@@ -251,7 +252,6 @@ const transferMoney = async (req, res) => {
 
     res.status(200).json({ message: "Transfer successful" });
   } catch (err) {
-    console.error("TRANSFER ERROR:", err);
     res.status(500).json({
       message: "Transfer failed",
       error: err.message,

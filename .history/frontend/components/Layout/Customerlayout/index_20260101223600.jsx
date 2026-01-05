@@ -41,11 +41,6 @@ const Customerlayout = ({ children }) => {
       label: <Link to="/customer/transaction">Transactions</Link>,
     },
     {
-      key: "/customer/transfer",
-      icon: <BranchesOutlined />,
-      label: <Link to="/customer/transfer">Transfer</Link>,
-    },
-    {
       key: "/customer/logout",
       icon: <LogoutOutlined />,
       label: (

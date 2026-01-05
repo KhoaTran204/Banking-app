@@ -10,7 +10,7 @@ const CustomerDashboard = () => {
   //get userInfo
   const userInfo = JSON.parse(sessionStorage.getItem("userInfo"));
   const { data: trData, error: trError } = useSWR(
-    `/api/transaction/summary?accountNo=${userInfo.accountNo}`,
+    `/api/transaction/summary?branch=${userInfo.branch}`,
     fetchData,
     {
       revalidateOnFocus: false,
@@ -18,16 +18,13 @@ const CustomerDashboard = () => {
       refreshInterval: 1200000,
     }
   );
-  console.log("userInfo:", userInfo);
 
   return (
     <Customerlayout>
       <Dashboard data={trData && trData} />
       <div className="mt-8">
         <Card title="Transactions history">
-          <TransactionTable
-            query={{ accountNo: userInfo?.accountNo, branch: userInfo?.branch }}
-          />
+          <TransactionTable query={{ branch: userInfo?.branch }} />
         </Card>
       </div>
     </Customerlayout>

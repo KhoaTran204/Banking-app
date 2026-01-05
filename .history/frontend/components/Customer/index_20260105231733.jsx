@@ -10,7 +10,7 @@ const CustomerDashboard = () => {
   //get userInfo
   const userInfo = JSON.parse(sessionStorage.getItem("userInfo"));
   const { data: trData, error: trError } = useSWR(
-    `/api/transaction/summary?accountNo=${userInfo.accountNo}`,
+    `/api/transaction/summary?_id=${userInfo._id}`,
     fetchData,
     {
       revalidateOnFocus: false,

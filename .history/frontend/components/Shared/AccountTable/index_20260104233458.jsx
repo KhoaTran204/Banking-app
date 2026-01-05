@@ -32,10 +32,6 @@ const AccountTable = ({ query = {} }) => {
         filtered = filtered.filter((u) => u.userType === "customer");
       }
 
-      if (userInfo?.userType === "customer") {
-        filtered = filtered.filter((u) => u.customerLoginId === userInfo._id);
-      }
-
       // 🔹 filter branch
       if (query.branch) {
         filtered = filtered.filter((u) => u.branch === query.branch);

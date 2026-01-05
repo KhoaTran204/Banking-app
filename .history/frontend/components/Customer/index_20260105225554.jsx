@@ -18,7 +18,6 @@ const CustomerDashboard = () => {
       refreshInterval: 1200000,
     }
   );
-  console.log("userInfo:", userInfo);
 
   return (
     <Customerlayout>

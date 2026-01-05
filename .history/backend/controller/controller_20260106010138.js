@@ -1,7 +1,7 @@
 const { schema } = require("../model/users.model");
 const dbService = require("../services/db.service");
-const Customer = require("../model/customer.model");
-const Transaction = require("../model/transaction.model");
+const customerSchema = require("../model/customer.model");
+const transactionSchema = require("../model/transaction.model");
 
 const getData = async (req, res, schema) => {
   try {
@@ -203,9 +203,15 @@ const getPaginatedTransactions = async (req, res, schema) => {
 };
 
 const transferMoney = async (req, res) => {
-  const { fromAccountNo, toBrandingId, toBankCardNo, amount } = req.body;
+  const { fromAccountNo, toBankCardNo, amount, branch } = req.body;
+  console.log("fromAccountNo:", fromAccountNo, typeof fromAccountNo);
 
   try {
+    if (amount <= 0) {
+      return res.status(400).json({ message: "Invalid amount" });
+    }
+
+    // 1️⃣ Tim nguoi gui
     const sender = await Customer.findOne({
       accountNo: Number(fromAccountNo),
     });
@@ -218,43 +224,46 @@ const transferMoney = async (req, res) => {
       return res.status(400).json({ message: "Insufficient balance" });
     }
 
-    const receiver = await Customer.findOne({
+    // 2️⃣ Tim nguoi nhan
+    const receiver = await customerSchema.findOne({
       bankCardNo: toBankCardNo,
+      branch,
     });
 
     if (!receiver) {
       return res.status(404).json({ message: "Receiver not found" });
     }
 
-    // cap nhat so du
+    // 3️⃣ Cap nhat so du
     sender.finalBalance -= amount;
     receiver.finalBalance += amount;
 
     await sender.save();
     await receiver.save();
 
-    // ghi transaction
-    await Transaction.create([
-      {
-        accountNo: sender.accountNo,
-        transactionType: "dr",
-        transactionAmount: amount,
-        branch: sender.branch,
-      },
-      {
-        accountNo: receiver.accountNo,
-        transactionType: "cr",
-        transactionAmount: amount,
-        branch: receiver.branch,
-      },
-    ]);
+    // 4️⃣ Tao transaction DR (sender)
+    await transactionSchema.create({
+      accountNo: sender.accountNo,
+      branch,
+      transactionType: "dr",
+      transactionAmount: amount,
+    });
 
-    res.status(200).json({ message: "Transfer successful" });
-  } catch (err) {
-    console.error("TRANSFER ERROR:", err);
-    res.status(500).json({
+    // 5️⃣ Tao transaction CR (receiver)
+    await transactionSchema.create({
+      accountNo: receiver.accountNo,
+      branch,
+      transactionType: "cr",
+      transactionAmount: amount,
+    });
+
+    return res.status(200).json({
+      message: "Transfer successful",
+    });
+  } catch (error) {
+    return res.status(500).json({
       message: "Transfer failed",
-      error: err.message,
+      error,
     });
   }
 };

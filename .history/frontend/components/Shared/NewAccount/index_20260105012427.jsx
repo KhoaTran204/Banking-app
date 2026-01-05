@@ -128,10 +128,6 @@ const NewAccount = () => {
       if (err?.response?.data?.error?.code === 11000) {
         accountForm.setFields([
           {
-            name: "bankCardNo",
-            errors: ["Bank Card already exists !"],
-          },
-          {
             name: "email",
             errors: ["Email already exists !"],
           },

@@ -1,7 +1,5 @@
 const { schema } = require("../model/users.model");
 const dbService = require("../services/db.service");
-const Customer = require("../model/customer.model");
-const Transaction = require("../model/transaction.model");
 
 const getData = async (req, res, schema) => {
   try {
@@ -91,23 +89,12 @@ const findByAccountNo = async (req, res, schema) => {
 };
 
 const getTransactionSummary = async (req, res, schema) => {
-  const { branch, accountNo } = req.query;
+  const { branch } = req.query;
 
   try {
-    // 🔹 build match condition linh hoạt
-    const matchCondition = {};
-
-    if (branch) {
-      matchCondition.branch = branch;
-    }
-
-    if (accountNo) {
-      matchCondition.accountNo = Number(accountNo);
-    }
-
     const summary = await schema.aggregate([
       {
-        $match: matchCondition,
+        $match: { branch },
       },
       {
         $group: {
@@ -121,7 +108,7 @@ const getTransactionSummary = async (req, res, schema) => {
               ],
             },
           },
-          totalDebit: {
+          totalDedit: {
             $sum: {
               $cond: [
                 { $eq: ["$transactionType", "dr"] },
@@ -135,7 +122,7 @@ const getTransactionSummary = async (req, res, schema) => {
               $cond: [{ $eq: ["$transactionType", "cr"] }, 1, 0],
             },
           },
-          debitCount: {
+          deditCount: {
             $sum: {
               $cond: [{ $eq: ["$transactionType", "dr"] }, 1, 0],
             },
@@ -147,30 +134,23 @@ const getTransactionSummary = async (req, res, schema) => {
         $project: {
           _id: 0,
           totalCredit: 1,
-          totalDebit: 1,
+          totalDedit: 1,
           totalTransactions: 1,
           creditCount: 1,
-          debitCount: 1,
-          balance: { $subtract: ["$totalCredit", "$totalDebit"] },
+          deditCount: 1,
+          balance: { $subtract: ["$totalCredit", "$totalDedit"] },
         },
       },
     ]);
-
     if (summary.length === 0) {
-      return res.status(200).json({
-        totalCredit: 0,
-        totalDebit: 0,
-        totalTransactions: 0,
-        creditCount: 0,
-        debitCount: 0,
-        balance: 0,
+      return res.status(404).json({
+        message: "No matching transactions found!",
       });
     }
-
     res.status(200).json(summary[0]);
   } catch (error) {
     return res.status(500).json({
-      message: "Internal calculating summary error",
+      message: "Internal caculating summary",
       error,
     });
   }
@@ -202,63 +182,6 @@ const getPaginatedTransactions = async (req, res, schema) => {
   }
 };
 
-const transferMoney = async (req, res) => {
-  const { fromAccountNo, toBrandingId, toBankCardNo, amount } = req.body;
-
-  try {
-    const sender = await Customer.findOne({
-      accountNo: Number(fromAccountNo),
-    });
-
-    if (!sender) {
-      return res.status(404).json({ message: "Sender not found" });
-    }
-
-    if (sender.finalBalance < amount) {
-      return res.status(400).json({ message: "Insufficient balance" });
-    }
-
-    const receiver = await Customer.findOne({
-      bankCardNo: toBankCardNo,
-    });
-
-    if (!receiver) {
-      return res.status(404).json({ message: "Receiver not found" });
-    }
-
-    // cap nhat so du
-    sender.finalBalance -= amount;
-    receiver.finalBalance += amount;
-
-    await sender.save();
-    await receiver.save();
-
-    // ghi transaction
-    await Transaction.create([
-      {
-        accountNo: sender.accountNo,
-        transactionType: "dr",
-        transactionAmount: amount,
-        branch: sender.branch,
-      },
-      {
-        accountNo: receiver.accountNo,
-        transactionType: "cr",
-        transactionAmount: amount,
-        branch: receiver.branch,
-      },
-    ]);
-
-    res.status(200).json({ message: "Transfer successful" });
-  } catch (err) {
-    console.error("TRANSFER ERROR:", err);
-    res.status(500).json({
-      message: "Transfer failed",
-      error: err.message,
-    });
-  }
-};
-
 module.exports = {
   createData,
   getData,
@@ -267,5 +190,4 @@ module.exports = {
   findByAccountNo,
   getTransactionSummary,
   getPaginatedTransactions,
-  transferMoney,
 };

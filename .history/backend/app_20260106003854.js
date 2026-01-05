@@ -44,7 +44,6 @@ app.use("/api/login", loginRouter);
 app.use("/api/customers", customersRouter);
 app.use("/api/find-by-account", findByAccountRouter);
 app.use("/api/transaction", transactionRouter);
-app.use("/api/transfer", transferRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

@@ -1,7 +1,5 @@
 const { schema } = require("../model/users.model");
 const dbService = require("../services/db.service");
-const Customer = require("../model/customer.model");
-const Transaction = require("../model/transaction.model");
 
 const getData = async (req, res, schema) => {
   try {
@@ -202,63 +200,6 @@ const getPaginatedTransactions = async (req, res, schema) => {
   }
 };
 
-const transferMoney = async (req, res) => {
-  const { fromAccountNo, toBrandingId, toBankCardNo, amount } = req.body;
-
-  try {
-    const sender = await Customer.findOne({
-      accountNo: Number(fromAccountNo),
-    });
-
-    if (!sender) {
-      return res.status(404).json({ message: "Sender not found" });
-    }
-
-    if (sender.finalBalance < amount) {
-      return res.status(400).json({ message: "Insufficient balance" });
-    }
-
-    const receiver = await Customer.findOne({
-      bankCardNo: toBankCardNo,
-    });
-
-    if (!receiver) {
-      return res.status(404).json({ message: "Receiver not found" });
-    }
-
-    // cap nhat so du
-    sender.finalBalance -= amount;
-    receiver.finalBalance += amount;
-
-    await sender.save();
-    await receiver.save();
-
-    // ghi transaction
-    await Transaction.create([
-      {
-        accountNo: sender.accountNo,
-        transactionType: "dr",
-        transactionAmount: amount,
-        branch: sender.branch,
-      },
-      {
-        accountNo: receiver.accountNo,
-        transactionType: "cr",
-        transactionAmount: amount,
-        branch: receiver.branch,
-      },
-    ]);
-
-    res.status(200).json({ message: "Transfer successful" });
-  } catch (err) {
-    console.error("TRANSFER ERROR:", err);
-    res.status(500).json({
-      message: "Transfer failed",
-      error: err.message,
-    });
-  }
-};
-
 module.exports = {
   createData,
   getData,
@@ -267,5 +208,4 @@ module.exports = {
   findByAccountNo,
   getTransactionSummary,
   getPaginatedTransactions,
-  transferMoney,
 };

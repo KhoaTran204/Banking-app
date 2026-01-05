@@ -2,18 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Table, Image } from "antd";
 import { http, formatDate } from "../../../modules/modules";
 
-const AccountTable = ({ query = {} }) => {
+const AccountTable = ({ query = {}, currentUserType }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-
-  // 🔹 pagination state (GIONG TransactionTable)
-  const [pagination, setPagination] = useState({
-    current: 1,
-    pageSize: 3,
-  });
-
-  // 🔹 lay user dang dang nhap
-  const userInfo = JSON.parse(sessionStorage.getItem("userInfo"));
 
   const fetchAccounts = async () => {
     setLoading(true);
@@ -21,32 +12,28 @@ const AccountTable = ({ query = {} }) => {
       const httpReq = http();
       const res = await httpReq.get("/api/users");
 
-      let filtered = res.data.data || [];
+      let users = res.data.data || [];
 
-      // 🔥 PHAN QUYEN
-      if (userInfo?.userType === "admin") {
-        filtered = filtered.filter((u) => u.userType === "employee");
+      // 1️⃣ Loc theo role nguoi dang nhap
+      if (currentUserType === "admin") {
+        users = users.filter((u) => u.userType === "employee");
       }
 
-      if (userInfo?.userType === "employee") {
-        filtered = filtered.filter((u) => u.userType === "customer");
+      if (currentUserType === "employee") {
+        users = users.filter((u) => u.userType === "customer");
       }
 
-      if (userInfo?.userType === "customer") {
-        filtered = filtered.filter((u) => u.customerLoginId === userInfo._id);
-      }
-
-      // 🔹 filter branch
+      // 2️⃣ Loc theo branch neu co
       if (query.branch) {
-        filtered = filtered.filter((u) => u.branch === query.branch);
+        users = users.filter((u) => u.branch === query.branch);
       }
 
-      // 🔹 sort moi nhat
-      filtered = filtered.sort(
-        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-      );
+      // 3️⃣ Sort + gioi han 3 dong
+      users = users
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(0, 3);
 
-      setData(filtered);
+      setData(users);
     } catch (err) {
       console.error("Failed to fetch accounts", err);
     } finally {
@@ -56,7 +43,7 @@ const AccountTable = ({ query = {} }) => {
 
   useEffect(() => {
     fetchAccounts();
-  }, [query]);
+  }, [query, currentUserType]);
 
   const columns = [
     {
@@ -110,6 +97,12 @@ const AccountTable = ({ query = {} }) => {
       key: "mobile",
     },
     {
+      title: "Balance",
+      dataIndex: "finalBalance",
+      key: "finalBalance",
+      render: (v) => v ?? 0, // tranh loi NaN
+    },
+    {
       title: "Created At",
       dataIndex: "createdAt",
       key: "createdAt",
@@ -122,15 +115,9 @@ const AccountTable = ({ query = {} }) => {
       rowKey="_id"
       columns={columns}
       dataSource={data}
+      pagination={false}
       loading={loading}
       scroll={{ x: "max-content" }}
-      pagination={{
-        current: pagination.current,
-        pageSize: pagination.pageSize,
-        total: data.length,
-        onChange: (page) =>
-          setPagination((prev) => ({ ...prev, current: page })),
-      }}
     />
   );
 };
