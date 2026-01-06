@@ -16,9 +16,7 @@ const Homelayout = ({ children }) => {
   } = theme.useToken();
   return (
     <Layout>
-      <Header style={{ padding: 0, background: colorBgContainer }}>
-        <Link to="/admin">Visit admin</Link>
-      </Header>
+      <Header style={{ padding: 0, background: colorBgContainer }}></Header>
       <Content
         style={{
           margin: "24px 16px",

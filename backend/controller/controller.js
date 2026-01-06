@@ -2,6 +2,8 @@ const { schema } = require("../model/users.model");
 const dbService = require("../services/db.service");
 const Customer = require("../model/customer.model");
 const Transaction = require("../model/transaction.model");
+const OTP = require("../model/otp.model");
+const transporter = require("../services/mail.service");
 
 const getData = async (req, res, schema) => {
   try {
@@ -202,38 +204,85 @@ const getPaginatedTransactions = async (req, res, schema) => {
   }
 };
 
-const transferMoney = async (req, res) => {
-  const { fromAccountNo, toBrandingId, toBankCardNo, amount } = req.body;
+// ================= OTP =================
+const sendTransferOTP = async (req, res) => {
+  const { accountNo } = req.body;
 
   try {
-    const sender = await Customer.findOne({
-      accountNo: Number(fromAccountNo),
+    console.log("SEND OTP ACCOUNT NO:", accountNo);
+
+    const customer = await Customer.findOne({ accountNo });
+    if (!customer) {
+      return res.status(404).json({ message: "Customer not found" });
+    }
+
+    if (!customer.email) {
+      return res.status(400).json({ message: "Customer has no email" });
+    }
+
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+    await OTP.deleteMany({ accountNo });
+
+    await OTP.create({
+      accountNo,
+      otp: otpCode,
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
     });
 
-    if (!sender) {
-      return res.status(404).json({ message: "Sender not found" });
+    await transporter.sendMail({
+      from: `"Bank System" <${process.env.MAIL_USER}>`,
+      to: customer.email,
+      subject: "Your Transfer OTP",
+      html: `
+        <h3>OTP Verification</h3>
+        <p>Your OTP code is:</p>
+        <h2>${otpCode}</h2>
+        <p>This code will expire in 5 minutes.</p>
+      `,
+    });
+
+    return res.status(200).json({
+      message: "OTP sent to email",
+    });
+  } catch (err) {
+    console.error("SEND OTP ERROR:", err);
+    return res.status(500).json({
+      message: "Send OTP failed",
+    });
+  }
+};
+
+/* ================= CONFIRM TRANSFER ================= */
+
+const confirmTransferWithOTP = async (req, res) => {
+  const { fromAccountNo, toBankCardNo, amount, otp } = req.body;
+
+  try {
+    const otpRecord = await OTP.findOne({ accountNo: fromAccountNo, otp });
+    if (!otpRecord || otpRecord.expiresAt < Date.now()) {
+      return res.status(400).json({ message: "OTP invalid or expired" });
+    }
+
+    await OTP.deleteMany({ accountNo: fromAccountNo });
+
+    const sender = await Customer.findOne({ accountNo: fromAccountNo });
+    const receiver = await Customer.findOne({ bankCardNo: toBankCardNo });
+
+    if (!sender || !receiver) {
+      return res.status(404).json({ message: "Account not found" });
     }
 
     if (sender.finalBalance < amount) {
       return res.status(400).json({ message: "Insufficient balance" });
     }
 
-    const receiver = await Customer.findOne({
-      bankCardNo: toBankCardNo,
-    });
-
-    if (!receiver) {
-      return res.status(404).json({ message: "Receiver not found" });
-    }
-
-    // cap nhat so du
     sender.finalBalance -= amount;
     receiver.finalBalance += amount;
 
     await sender.save();
     await receiver.save();
 
-    // ghi transaction
     await Transaction.create([
       {
         accountNo: sender.accountNo,
@@ -251,21 +300,23 @@ const transferMoney = async (req, res) => {
 
     res.status(200).json({ message: "Transfer successful" });
   } catch (err) {
-    console.error("TRANSFER ERROR:", err);
-    res.status(500).json({
-      message: "Transfer failed",
-      error: err.message,
-    });
+    res.status(500).json({ message: "Transfer failed" });
   }
 };
 
 module.exports = {
+  // ================= CRUD COMMON =================
   createData,
   getData,
   updateData,
   deleteData,
   findByAccountNo,
+  // ================= TRANSACTION =================
+
   getTransactionSummary,
   getPaginatedTransactions,
-  transferMoney,
+  // transferMoney,
+  // ================= OTP =================
+  sendTransferOTP,
+  confirmTransferWithOTP,
 };

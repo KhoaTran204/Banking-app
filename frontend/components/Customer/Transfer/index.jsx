@@ -1,5 +1,5 @@
 import { Button, Card, Form, Input, InputNumber, message, Select } from "antd";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { http, fetchData } from "../../../modules/modules";
 import Customerlayout from "../../Layout/Customerlayout";
 import useSWR from "swr";
@@ -8,33 +8,58 @@ const { Item } = Form;
 
 const Transfer = () => {
   const [loading, setLoading] = useState(false);
+  const [sendingOTP, setSendingOTP] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+
   const [form] = Form.useForm();
   const [messageApi, context] = message.useMessage();
 
-  // lấy userInfo ngầm (KHÔNG HIỂN THỊ)
+  // lay userInfo
   const userInfo = JSON.parse(sessionStorage.getItem("userInfo"));
 
-  // lấy branding giống NewAccount
+  // lay branding
   const { data: brandings } = useSWR("/api/branding", fetchData, {
     revalidateOnFocus: false,
   });
 
+  // ===== GUI OTP =====
+  const handleSendOTP = async () => {
+    try {
+      setSendingOTP(true);
+      const httpReq = http();
+
+      await httpReq.post("/api/transfer/send-otp", {
+        accountNo: userInfo.accountNo,
+      });
+
+      messageApi.success("OTP da duoc gui qua email");
+      setOtpSent(true);
+    } catch (err) {
+      messageApi.error(err?.response?.data?.message || "Gui OTP that bai");
+    } finally {
+      setSendingOTP(false);
+    }
+  };
+
+  // ===== CHUYEN TIEN =====
   const onFinish = async (values) => {
     try {
       setLoading(true);
       const httpReq = http();
 
-      await httpReq.post("/api/transfer", {
+      await httpReq.post("/api/transfer/confirm", {
         fromAccountNo: Number(userInfo.accountNo),
         toBrandingId: values.brandingId,
         toBankCardNo: values.bankCardNo,
         amount: Number(values.amount),
+        otp: values.otp,
       });
 
-      messageApi.success("Transfer successfully!");
+      messageApi.success("Chuyen tien thanh cong!");
       form.resetFields();
+      setOtpSent(false);
     } catch (err) {
-      messageApi.error(err?.response?.data?.message || "Transfer failed");
+      messageApi.error(err?.response?.data?.message || "Chuyen tien that bai");
     } finally {
       setLoading(false);
     }
@@ -61,7 +86,7 @@ const Transfer = () => {
             rules={[{ required: true, message: "Please select bank" }]}
           >
             <Select placeholder="Select bank">
-              {brandings?.data?.map((b) => (
+              {(brandings?.data || brandings || []).map((b) => (
                 <Select.Option key={b._id} value={b._id}>
                   {b.bankName}
                 </Select.Option>
@@ -93,22 +118,40 @@ const Transfer = () => {
             />
           </Item>
 
-          {/* ===== DESCRIPTION ===== */}
-          <Item label="Description" name="description">
-            <Input.TextArea
-              placeholder="Optional note (e.g. Rent payment, Gift, ...)"
-              rows={3}
-            />
-          </Item>
+          {/* ===== OTP ===== */}
+          {otpSent && (
+            <Item
+              label="OTP"
+              name="otp"
+              rules={[{ required: true, message: "Please enter OTP" }]}
+            >
+              <Input placeholder="Enter OTP sent to your email" />
+            </Item>
+          )}
 
+          {/* ===== BUTTON GUI OTP ===== */}
+          {!otpSent && (
+            <Button
+              type="dashed"
+              block
+              loading={sendingOTP}
+              onClick={handleSendOTP}
+              className="mb-3"
+            >
+              Send OTP
+            </Button>
+          )}
+
+          {/* ===== SUBMIT ===== */}
           <Button
             loading={loading}
             type="text"
             htmlType="submit"
             className="!font-semibold !text-white !bg-blue-500"
             block
+            disabled={!otpSent}
           >
-            Submit Transfer
+            Confirm Transfer
           </Button>
         </Form>
       </Card>
