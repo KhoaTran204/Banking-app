@@ -10,6 +10,7 @@ import {
 import { Button, Layout, Menu, theme } from "antd";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Cookies from "universal-cookie";
+import Chatbot from "../../Shared/Chatbot";
 
 const cookies = new Cookies();
 
@@ -100,6 +101,7 @@ const Customerlayout = ({ children }) => {
           {children}
         </Content>
       </Layout>
+      <Chatbot />
     </Layout>
   );
 };

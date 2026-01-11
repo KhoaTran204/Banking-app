@@ -21,6 +21,7 @@ const customersRouter = require("./routes/customers.routes.js");
 const findByAccountRouter = require("./routes/findByAccount.routes.js");
 const transactionRouter = require("./routes/transaction.routes.js");
 const transferRouter = require("./routes/transfer.routes.js");
+const chatbotRoutes = require("./routes/chatbot.route.js");
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
@@ -46,6 +47,7 @@ app.use("/api/customers", customersRouter);
 app.use("/api/find-by-account", findByAccountRouter);
 app.use("/api/transaction", transactionRouter);
 app.use("/api/transfer", transferRouter);
+app.use("/api/chatbot", chatbotRoutes);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

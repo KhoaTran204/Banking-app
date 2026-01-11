@@ -1,16 +1,34 @@
-const { chatWithAI } = require("../services/chatbot.service");
+const { askGemini } = require("../services/gemini.service");
 
-exports.chat = async (req, res) => {
+const {
+  detectIntent,
+  getBalance,
+  getTransactions,
+} = require("../services/chatbot.helper");
+
+const chatWithBot = async (req, res) => {
+  const { message, accountNo } = req.body;
+
   try {
-    const { message } = req.body;
+    const intent = detectIntent(message);
 
-    if (!message) {
-      return res.status(400).json({ error: "Message is required" });
+    if (intent === "BALANCE") {
+      const reply = await getBalance(accountNo);
+      return res.json({ reply });
     }
 
-    const reply = await chatWithAI(message);
+    if (intent === "HISTORY") {
+      const reply = await getTransactions(accountNo);
+      return res.json({ reply });
+    }
+
+    // fallback AI
+    const reply = await askGemini(message);
     res.json({ reply });
-  } catch (error) {
-    res.status(500).json({ error: "Chatbot error" });
+  } catch (err) {
+    console.error("❌ CHATBOT ERROR:", err);
+    res.status(500).json({ message: "Chatbot error", error: err.message });
   }
 };
+
+module.exports = { chatWithBot };
