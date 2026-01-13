@@ -4,31 +4,31 @@ const Transaction = require("../model/transaction.model");
 // ==================
 // INTENT DETECTION
 // ==================
-const detectIntent = (message) => {
-  const text = message.toLowerCase();
+// const detectIntent = (message) => {
+//   const text = message.toLowerCase();
 
-  if (text.includes("so du")) return "BALANCE";
-  if (text.includes("lich su")) return "HISTORY";
+//   if (text.includes("số dư")) return "BALANCE";
+//   if (text.includes("lịch sử")) return "HISTORY";
 
-  // ---- HUONG DAN ----
-  if (text.includes("chuyen tien")) return "GUIDE_TRANSFER";
-  if (text.includes("otp")) return "GUIDE_OTP";
-  if (text.includes("bao mat")) return "GUIDE_SECURITY";
-  if (text.includes("dang nhap")) return "GUIDE_LOGIN";
-  if (text.includes("quen mat khau")) return "GUIDE_FORGOT_PASSWORD";
-  if (text.includes("tai khoan")) return "GUIDE_ACCOUNT";
+//   // ---- HƯỚNG DẪN ----
+//   if (text.includes("chuyển tiền")) return "GUIDE_TRANSFER";
+//   if (text.includes("otp")) return "GUIDE_OTP";
+//   if (text.includes("bảo mật")) return "GUIDE_SECURITY";
+//   if (text.includes("đăng nhập")) return "GUIDE_LOGIN";
+//   if (text.includes("quên mật khẩu")) return "GUIDE_FORGOT_PASSWORD";
+//   if (text.includes("tài khoản")) return "GUIDE_ACCOUNT";
 
-  return "AI";
-};
+//   return "AI";
+// };
 
 // ==================
 // BUSINESS LOGIC
 // ==================
 const getBalance = async (accountNo) => {
   const customer = await Customer.findOne({ accountNo });
-  if (!customer) return "Khong tim thay tai khoan.";
+  if (!customer) return "Không tìm thấy tài khoản.";
 
-  return `So du hien tai cua ban la ${customer.finalBalance} VND`;
+  return `Số dư hiện tại của bạn là ${customer.finalBalance} VND`;
 };
 
 const getTransactions = async (accountNo) => {
@@ -36,12 +36,12 @@ const getTransactions = async (accountNo) => {
     .sort({ createdAt: -1 })
     .limit(5);
 
-  if (txs.length === 0) return "Ban chua co giao dich nao.";
+  if (txs.length === 0) return "Bạn chưa có giao dịch nào.";
 
   return txs
     .map(
       (t, i) =>
-        `${i + 1}. ${t.transactionType === "cr" ? "Nhan" : "Chuyen"} ${
+        `${i + 1}. ${t.transactionType === "cr" ? "Nhận" : "Chuyển"} ${
           t.transactionAmount
         } VND`
     )
@@ -54,53 +54,53 @@ const getTransactions = async (accountNo) => {
 const getGuideResponse = (intent) => {
   const guides = {
     GUIDE_TRANSFER: `
-Huong dan chuyen tien:
-1. Vao muc Transfer
-2. Nhap so tai khoan nguoi nhan
-3. Nhap so tien
-4. Xac nhan bang ma OTP
+Hướng dẫn chuyển tiền:
+① Vào mục Transfer  
+② Nhập số tài khoản người nhận  
+③ Nhập số tiền  
+④ Xác nhận bằng mã OTP 
 `,
 
     GUIDE_OTP: `
-Ma OTP la gi?
-- La ma bao mat duoc gui ve email hoac dien thoai
-- Dung de xac nhan dang nhap va giao dich
+Mã OTP là gì?
+- Là mã bảo mật được gửi về email hoặc điện thoại
+- Dùng để xác nhận đăng nhập và giao dịch
 `,
 
     GUIDE_SECURITY: `
-Cach bao mat tai khoan:
-- Khong chia se mat khau va OTP
-- Doi mat khau dinh ky
-- Dang xuat khi dung tren may la
+Cách bảo mật tài khoản:
+- Không chia sẻ mật khẩu và OTP
+- Đổi mật khẩu định kỳ
+- Đăng xuất khi dùng trên máy lạ
 `,
 
     GUIDE_LOGIN: `
-Huong dan dang nhap:
-1. Nhap email va mat khau
-2. Neu co OTP thi nhap them OTP
-3. Bam Dang nhap de vao he thong
+Hướng dẫn đăng nhập:
+1. Nhập email và mật khẩu
+2. Nếu có OTP thì nhập thêm OTP
+3. Bấm Đăng nhập để vào hệ thống
 `,
 
     GUIDE_FORGOT_PASSWORD: `
-Neu quen mat khau:
-1. Bam "Quen mat khau"
-2. Nhap email dang ky
-3. Kiem tra email de dat lai mat khau
+Nếu quên mật khẩu:
+1. Bấm "Quên mật khẩu"
+2. Nhập email đăng ký
+3. Kiểm tra email để đặt lại mật khẩu
 `,
 
     GUIDE_ACCOUNT: `
-Quan ly tai khoan:
-- Cap nhat thong tin ca nhan
-- Doi mat khau
-- Kiem tra lich su giao dich
+Quản lý tài khoản:
+- Cập nhật thông tin cá nhân
+- Đổi mật khẩu
+- Kiểm tra lịch sử giao dịch
 `,
   };
 
-  return guides[intent] || "Toi chua co huong dan cho van de nay.";
+  return guides[intent] || "Tôi chưa có hướng dẫn cho vấn đề này.";
 };
 
 module.exports = {
-  detectIntent,
+  // detectIntent,
   getBalance,
   getTransactions,
   getGuideResponse,
