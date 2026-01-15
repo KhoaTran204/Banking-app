@@ -5,6 +5,7 @@ import { fetchData } from "../../modules/modules";
 import { Card } from "antd";
 
 import TransactionTable from "../Shared/TransactionTable";
+import DashboardCustomer from "../Shared/DashboardCustomer";
 
 const CustomerDashboard = () => {
   //get userInfo
@@ -22,7 +23,7 @@ const CustomerDashboard = () => {
 
   return (
     <Customerlayout>
-      <Dashboard data={trData && trData} />
+      <DashboardCustomer data={trData && trData} />
       <div className="mt-8">
         <Card title="Transactions history">
           <TransactionTable

@@ -96,24 +96,27 @@ const getTransactionSummary = async (req, res, schema) => {
   const { branch, accountNo } = req.query;
 
   try {
-    // 🔹 build match condition linh hoạt
-    const matchCondition = {};
+    const matchCondition = {
+      status: "success",
+    };
 
-    if (branch) {
+    /**
+     * ⚠️ QUAN TRỌNG
+     * - Nếu có accountNo → ưu tiên accountNo (customer)
+     * - Nếu không → dùng branch (admin / employee)
+     */
+    if (accountNo) {
+      matchCondition.accountNo = Number(accountNo);
+    } else if (branch) {
       matchCondition.branch = branch;
     }
 
-    if (accountNo) {
-      matchCondition.accountNo = Number(accountNo);
-    }
-
     const summary = await schema.aggregate([
-      {
-        $match: matchCondition,
-      },
+      { $match: matchCondition },
       {
         $group: {
           _id: null,
+
           totalCredit: {
             $sum: {
               $cond: [
@@ -123,6 +126,7 @@ const getTransactionSummary = async (req, res, schema) => {
               ],
             },
           },
+
           totalDebit: {
             $sum: {
               $cond: [
@@ -132,16 +136,7 @@ const getTransactionSummary = async (req, res, schema) => {
               ],
             },
           },
-          creditCount: {
-            $sum: {
-              $cond: [{ $eq: ["$transactionType", "cr"] }, 1, 0],
-            },
-          },
-          debitCount: {
-            $sum: {
-              $cond: [{ $eq: ["$transactionType", "dr"] }, 1, 0],
-            },
-          },
+
           totalTransactions: { $sum: 1 },
         },
       },
@@ -151,27 +146,23 @@ const getTransactionSummary = async (req, res, schema) => {
           totalCredit: 1,
           totalDebit: 1,
           totalTransactions: 1,
-          creditCount: 1,
-          debitCount: 1,
           balance: { $subtract: ["$totalCredit", "$totalDebit"] },
         },
       },
     ]);
 
-    if (summary.length === 0) {
+    if (!summary.length) {
       return res.status(200).json({
         totalCredit: 0,
         totalDebit: 0,
         totalTransactions: 0,
-        creditCount: 0,
-        debitCount: 0,
         balance: 0,
       });
     }
 
     res.status(200).json(summary[0]);
   } catch (error) {
-    return res.status(500).json({
+    res.status(500).json({
       message: "Internal calculating summary error",
       error,
     });
@@ -180,27 +171,33 @@ const getTransactionSummary = async (req, res, schema) => {
 
 const getPaginatedTransactions = async (req, res, schema) => {
   try {
-    const { accountNo, branch, page = 1, pageSize = 10 } = req.query;
+    const { accountNo, branch, status, page = 1, pageSize = 10 } = req.query;
 
     const filter = {};
-    if (accountNo) filter.accountNo = accountNo;
-    if (branch) filter.branch = branch;
 
-    const skip = (parseInt(page) - 1) * parseInt(pageSize);
-    const limit = parseInt(pageSize);
+    if (accountNo) filter.accountNo = Number(accountNo);
+    if (branch) filter.branch = branch;
+    if (status) filter.status = status;
+
+    const skip = (Number(page) - 1) * Number(pageSize);
+    const limit = Number(pageSize);
 
     const [transactions, total] = await Promise.all([
       schema.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
       schema.countDocuments(filter),
     ]);
+
     res.status(200).json({
       data: transactions,
       total,
-      page: parseInt(page),
-      pageSize: parseInt(pageSize),
+      page: Number(page),
+      pageSize: Number(pageSize),
     });
   } catch (error) {
-    res.status(500).json({ message: "Error fetching transactions", error });
+    res.status(500).json({
+      message: "Error fetching transactions",
+      error,
+    });
   }
 };
 
@@ -255,6 +252,8 @@ const sendTransferOTP = async (req, res) => {
 
 /* ================= CONFIRM TRANSFER ================= */
 
+/* ================= CONFIRM TRANSFER ================= */
+
 const confirmTransferWithOTP = async (req, res) => {
   const { fromAccountNo, toBankCardNo, amount, otp } = req.body;
 
@@ -304,6 +303,158 @@ const confirmTransferWithOTP = async (req, res) => {
   }
 };
 
+const getDashboardOverview = async (req, res) => {
+  const { branch, fromDate, toDate } = req.query;
+
+  try {
+    const start = fromDate ? new Date(fromDate) : null;
+    const end = toDate ? new Date(toDate) : null;
+
+    if (end) end.setHours(23, 59, 59, 999);
+
+    /* ================= ACCOUNT CREATED PER DAY ================= */
+    const accountMatch = {};
+    if (branch) accountMatch.branch = branch;
+    if (start || end) {
+      accountMatch.createdAt = {};
+      if (start) accountMatch.createdAt.$gte = start;
+      if (end) accountMatch.createdAt.$lte = end;
+    }
+
+    const accountPerDay = await Customer.aggregate([
+      { $match: accountMatch },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: "%d-%m", date: "$createdAt" },
+          },
+          total: { $sum: 1 },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    /* ================= TRANSACTION COUNT PER DAY ================= */
+    const transactionMatch = { status: "success" };
+    if (branch) transactionMatch.branch = branch;
+    if (start || end) {
+      transactionMatch.createdAt = {};
+      if (start) transactionMatch.createdAt.$gte = start;
+      if (end) transactionMatch.createdAt.$lte = end;
+    }
+
+    const transactionPerDay = await Transaction.aggregate([
+      { $match: transactionMatch },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: "%d-%m", date: "$createdAt" },
+          },
+          total: { $sum: 1 },
+          amount: { $sum: "$transactionAmount" },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    /* ================= TOTAL AMOUNT (PIE) ================= */
+    const totalAmount = transactionPerDay.reduce((sum, i) => sum + i.amount, 0);
+
+    return res.status(200).json({
+      accountChart: accountPerDay.map((i) => ({
+        date: i._id,
+        value: i.total,
+      })),
+      transactionChart: transactionPerDay.map((i) => ({
+        date: i._id,
+        value: i.total,
+      })),
+      pieData: [{ name: "Tong so tien giao dich", value: totalAmount }],
+    });
+  } catch (err) {
+    return res.status(500).json({
+      message: "Dashboard overview error",
+      error: err,
+    });
+  }
+};
+const getDashboardSummary = async (req, res) => {
+  const { branch, fromDate, toDate } = req.query;
+
+  try {
+    const start = fromDate ? new Date(fromDate) : null;
+    const end = toDate ? new Date(toDate) : null;
+    if (end) end.setHours(23, 59, 59, 999);
+
+    /* ================= FILTER ================= */
+    const dateFilter = {};
+    if (start || end) {
+      dateFilter.createdAt = {};
+      if (start) dateFilter.createdAt.$gte = start;
+      if (end) dateFilter.createdAt.$lte = end;
+    }
+
+    /* ================= TỔNG SỐ TÀI KHOẢN ================= */
+    const totalAccounts = await Customer.countDocuments({
+      ...(branch && { branch }),
+      ...dateFilter,
+    });
+
+    /* ================= GIAO DỊCH ================= */
+    const transactionMatch = {
+      status: "success",
+      ...(branch && { branch }),
+      ...dateFilter,
+    };
+
+    const transactionSummary = await Transaction.aggregate([
+      { $match: transactionMatch },
+      {
+        $group: {
+          _id: null,
+          totalTransactions: { $sum: 1 },
+          totalRevenue: {
+            $sum: {
+              $cond: [
+                { $eq: ["$transactionType", "cr"] },
+                "$transactionAmount",
+                0,
+              ],
+            },
+          },
+          totalDebit: {
+            $sum: {
+              $cond: [
+                { $eq: ["$transactionType", "dr"] },
+                "$transactionAmount",
+                0,
+              ],
+            },
+          },
+        },
+      },
+    ]);
+
+    const summary = transactionSummary[0] || {
+      totalTransactions: 0,
+      totalRevenue: 0,
+      totalDebit: 0,
+    };
+
+    return res.status(200).json({
+      totalAccounts,
+      totalTransactions: summary.totalTransactions,
+      totalRevenue: summary.totalRevenue,
+      balance: summary.totalRevenue - summary.totalDebit,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Dashboard summary error",
+      error,
+    });
+  }
+};
+
 module.exports = {
   // ================= CRUD COMMON =================
   createData,
@@ -311,10 +462,12 @@ module.exports = {
   updateData,
   deleteData,
   findByAccountNo,
+  getDashboardSummary,
   // ================= TRANSACTION =================
 
   getTransactionSummary,
   getPaginatedTransactions,
+  getDashboardOverview,
   // transferMoney,
   // ================= OTP =================
   sendTransferOTP,

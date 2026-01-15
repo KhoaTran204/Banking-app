@@ -11,7 +11,9 @@ const AdminDashboard = () => {
   const userInfo = JSON.parse(sessionStorage.getItem("userInfo"));
 
   const { data: trData } = useSWR(
-    `/api/transaction/summary?branch=${userInfo.branch}`,
+    userInfo?.branch
+      ? `/api/transaction/summary?branch=${userInfo.branch}`
+      : null,
     fetchData,
     {
       revalidateOnFocus: false,
@@ -20,15 +22,24 @@ const AdminDashboard = () => {
     }
   );
 
+  /* ===== NORMALIZE DATA FOR DASHBOARD ===== */
+  const dashboardData = {
+    totalTransactions: trData?.totalTransactions || 0,
+    totalCredit: trData?.totalCredit || 0,
+    totalDebit: trData?.totalDebit || 0,
+    balance: trData?.balance || 0,
+  };
+
   return (
     <Adminlayout>
-      <Dashboard data={trData && trData} />
+      <Dashboard data={dashboardData} />
 
       <div className="mt-8">
         <Card title="Recently Created Accounts">
           <AccountTable query={{ branch: userInfo?.branch }} />
         </Card>
       </div>
+
       <div className="mt-8">
         <Card title="Transactions history">
           <TransactionTable query={{ branch: userInfo?.branch }} />
