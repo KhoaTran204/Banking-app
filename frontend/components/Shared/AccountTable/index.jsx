@@ -6,13 +6,13 @@ const AccountTable = ({ query = {} }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // 🔹 pagination state (GIONG TransactionTable)
+  // 🔹 trạng thái phân trang (GIỐNG TransactionTable)
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 3,
   });
 
-  // 🔹 lay user dang dang nhap
+  // 🔹 lấy thông tin người dùng đang đăng nhập
   const userInfo = JSON.parse(sessionStorage.getItem("userInfo"));
 
   const fetchAccounts = async () => {
@@ -23,7 +23,7 @@ const AccountTable = ({ query = {} }) => {
 
       let filtered = res.data.data || [];
 
-      // 🔥 PHAN QUYEN
+      // 🔥 PHÂN QUYỀN
       if (userInfo?.userType === "admin") {
         filtered = filtered.filter((u) => u.userType === "employee");
       }
@@ -36,19 +36,19 @@ const AccountTable = ({ query = {} }) => {
         filtered = filtered.filter((u) => u.customerLoginId === userInfo._id);
       }
 
-      // 🔹 filter branch
+      // 🔹 lọc theo chi nhánh
       if (query.branch) {
         filtered = filtered.filter((u) => u.branch === query.branch);
       }
 
-      // 🔹 sort moi nhat
+      // 🔹 sắp xếp mới nhất
       filtered = filtered.sort(
         (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
       );
 
       setData(filtered);
     } catch (err) {
-      console.error("Failed to fetch accounts", err);
+      console.error("Không thể tải danh sách tài khoản", err);
     } finally {
       setLoading(false);
     }
@@ -60,7 +60,7 @@ const AccountTable = ({ query = {} }) => {
 
   const columns = [
     {
-      title: "Profile",
+      title: "Ảnh đại diện",
       key: "profile",
       render: (_, obj) => (
         <Image
@@ -72,7 +72,7 @@ const AccountTable = ({ query = {} }) => {
       ),
     },
     {
-      title: "User Type",
+      title: "Loại người dùng",
       dataIndex: "userType",
       key: "userType",
       render: (text) => (
@@ -90,12 +90,12 @@ const AccountTable = ({ query = {} }) => {
       ),
     },
     {
-      title: "Branch",
+      title: "Chi nhánh",
       dataIndex: "branch",
       key: "branch",
     },
     {
-      title: "Fullname",
+      title: "Họ và tên",
       dataIndex: "fullname",
       key: "fullname",
     },
@@ -105,12 +105,12 @@ const AccountTable = ({ query = {} }) => {
       key: "email",
     },
     {
-      title: "Mobile",
+      title: "Số điện thoại",
       dataIndex: "mobile",
       key: "mobile",
     },
     {
-      title: "Created At",
+      title: "Ngày tạo",
       dataIndex: "createdAt",
       key: "createdAt",
       render: (d) => formatDate(d),

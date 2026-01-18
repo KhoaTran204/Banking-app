@@ -19,12 +19,13 @@ import Cookies from "universal-cookie";
 
 const cookies = new Cookies();
 const { Header, Sider, Content } = Layout;
+
 const Adminlayout = ({ children }) => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   console.log(pathname);
 
-  // logout Function
+  // Hàm đăng xuất
   const logoutFunc = () => {
     sessionStorage.removeItem("userInfo");
     cookies.remove("authToken");
@@ -35,37 +36,37 @@ const Adminlayout = ({ children }) => {
     {
       key: "/admin",
       icon: <DashOutlined />,
-      label: <Link to="/admin">Dashboard</Link>,
+      label: <Link to="/admin">Bảng điều khiển</Link>,
     },
     {
       key: "/admin/new-account",
       icon: <UserAddOutlined />,
-      label: <Link to="/admin/new-account">New Account</Link>,
+      label: <Link to="/admin/new-account">Tạo tài khoản mới</Link>,
     },
     {
       key: "/admin/new-transaction",
       icon: <UserAddOutlined />,
-      label: <Link to="/admin/new-transaction">New Transaction</Link>,
+      label: <Link to="/admin/new-transaction">Tạo giao dịch mới</Link>,
     },
     {
       key: "/admin/new-employee",
       icon: <UserOutlined />,
-      label: <Link to="/admin/new-employee">New Employee</Link>,
+      label: <Link to="/admin/new-employee">Tạo nhân viên mới</Link>,
     },
     {
       key: "/admin/branding",
       icon: <GiftOutlined />,
-      label: <Link to="/admin/branding">Branding</Link>,
+      label: <Link to="/admin/branding">Ngân hàng</Link>,
     },
     {
       key: "/admin/branch",
       icon: <BranchesOutlined />,
-      label: <Link to="/admin/branch">Branch</Link>,
+      label: <Link to="/admin/branch">Chi nhánh</Link>,
     },
     {
       key: "/admin/currency",
       icon: <DollarCircleOutlined />,
-      label: <Link to="/admin/currency">Currency</Link>,
+      label: <Link to="/admin/currency">Tiền tệ</Link>,
     },
     {
       key: "/admin/logout",
@@ -76,7 +77,7 @@ const Adminlayout = ({ children }) => {
           className="!text-gray-300 !font-semibold"
           onClick={logoutFunc}
         >
-          Logout
+          Đăng xuất
         </Button>
       ),
     },
@@ -86,6 +87,7 @@ const Adminlayout = ({ children }) => {
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+
   return (
     <Layout className="!min-h-screen">
       <Sider trigger={null} collapsible collapsed={collapsed}>
@@ -97,6 +99,7 @@ const Adminlayout = ({ children }) => {
           items={items}
         />
       </Sider>
+
       <Layout>
         <Header style={{ padding: 0, background: colorBgContainer }}>
           <Button
@@ -110,6 +113,7 @@ const Adminlayout = ({ children }) => {
             }}
           />
         </Header>
+
         <Content
           style={{
             margin: "24px 16px",
@@ -125,4 +129,5 @@ const Adminlayout = ({ children }) => {
     </Layout>
   );
 };
+
 export default Adminlayout;

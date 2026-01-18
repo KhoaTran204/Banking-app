@@ -59,6 +59,9 @@ const Dashboard = ({ data = {}, branch }) => {
   const [accountChart, setAccountChart] = useState([]);
   const [transactionChart, setTransactionChart] = useState([]);
   const [pieData, setPieData] = useState([]);
+  const [overviewSummary, setOverviewSummary] = useState({
+    totalAccounts: 0,
+  });
 
   const {
     totalAccounts = 0,
@@ -79,6 +82,11 @@ const Dashboard = ({ data = {}, branch }) => {
       setRawAccountChart(res.data.accountChart || []);
       setRawTransactionChart(res.data.transactionChart || []);
       setPieData(res.data.pieData || []);
+
+      // ✅ DUNG: res chi duoc dung TRONG DAY
+      setOverviewSummary({
+        totalAccounts: res.data.totalAccounts || 0,
+      });
     };
 
     fetchDashboard();
@@ -111,6 +119,8 @@ const Dashboard = ({ data = {}, branch }) => {
     setAccountChart(filterByDate(rawAccountChart));
     setTransactionChart(filterByDate(rawTransactionChart));
   }, [fromDate, toDate, rawAccountChart, rawTransactionChart]);
+  console.log("DASHBOARD DATA:", data);
+  console.log("ACCOUNT CHART:", rawAccountChart);
 
   return (
     <div className="space-y-12">
@@ -132,7 +142,9 @@ const Dashboard = ({ data = {}, branch }) => {
       <div className="grid md:grid-cols-4 gap-6">
         <Card>
           <div className="text-sm text-gray-500">Tổng số tài khoản</div>
-          <div className="text-2xl font-semibold">{totalAccounts}</div>
+          <div className="text-2xl font-semibold">
+            {overviewSummary.totalAccounts}
+          </div>
         </Card>
 
         <Card>

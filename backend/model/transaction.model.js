@@ -27,7 +27,7 @@ const transactionSchema = new Schema(
     },
     branch: {
       type: String,
-      required: true, // 🔥 QUAN TRỌNG
+      required: true,
     },
   },
   { timestamps: true }

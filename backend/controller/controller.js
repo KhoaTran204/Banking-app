@@ -252,10 +252,9 @@ const sendTransferOTP = async (req, res) => {
 
 /* ================= CONFIRM TRANSFER ================= */
 
-/* ================= CONFIRM TRANSFER ================= */
-
 const confirmTransferWithOTP = async (req, res) => {
-  const { fromAccountNo, toBankCardNo, amount, otp } = req.body;
+  const { fromAccountNo, toBankCardNo, transactionAmount, otp } = req.body;
+  const amount = Number(transactionAmount);
 
   try {
     const otpRecord = await OTP.findOne({ accountNo: fromAccountNo, otp });
@@ -309,20 +308,23 @@ const getDashboardOverview = async (req, res) => {
   try {
     const start = fromDate ? new Date(fromDate) : null;
     const end = toDate ? new Date(toDate) : null;
-
     if (end) end.setHours(23, 59, 59, 999);
 
-    /* ================= ACCOUNT CREATED PER DAY ================= */
-    const accountMatch = {};
-    if (branch) accountMatch.branch = branch;
+    /* ================= FILTER ACCOUNT ================= */
+    const accountFilter = {};
+    if (branch) accountFilter.branch = branch;
     if (start || end) {
-      accountMatch.createdAt = {};
-      if (start) accountMatch.createdAt.$gte = start;
-      if (end) accountMatch.createdAt.$lte = end;
+      accountFilter.createdAt = {};
+      if (start) accountFilter.createdAt.$gte = start;
+      if (end) accountFilter.createdAt.$lte = end;
     }
 
+    /* ================= TOTAL ACCOUNTS (QUAN TRONG) ================= */
+    const totalAccounts = await Customer.countDocuments(accountFilter);
+
+    /* ================= ACCOUNT CREATED PER DAY ================= */
     const accountPerDay = await Customer.aggregate([
-      { $match: accountMatch },
+      { $match: accountFilter },
       {
         $group: {
           _id: {
@@ -334,17 +336,18 @@ const getDashboardOverview = async (req, res) => {
       { $sort: { _id: 1 } },
     ]);
 
-    /* ================= TRANSACTION COUNT PER DAY ================= */
-    const transactionMatch = { status: "success" };
-    if (branch) transactionMatch.branch = branch;
+    /* ================= TRANSACTION FILTER ================= */
+    const transactionFilter = { status: "success" };
+    if (branch) transactionFilter.branch = branch;
     if (start || end) {
-      transactionMatch.createdAt = {};
-      if (start) transactionMatch.createdAt.$gte = start;
-      if (end) transactionMatch.createdAt.$lte = end;
+      transactionFilter.createdAt = {};
+      if (start) transactionFilter.createdAt.$gte = start;
+      if (end) transactionFilter.createdAt.$lte = end;
     }
 
+    /* ================= TRANSACTION PER DAY ================= */
     const transactionPerDay = await Transaction.aggregate([
-      { $match: transactionMatch },
+      { $match: transactionFilter },
       {
         $group: {
           _id: {
@@ -357,10 +360,10 @@ const getDashboardOverview = async (req, res) => {
       { $sort: { _id: 1 } },
     ]);
 
-    /* ================= TOTAL AMOUNT (PIE) ================= */
     const totalAmount = transactionPerDay.reduce((sum, i) => sum + i.amount, 0);
 
     return res.status(200).json({
+      totalAccounts, // ✅ FIX CHINH O DAY
       accountChart: accountPerDay.map((i) => ({
         date: i._id,
         value: i.total,
@@ -369,7 +372,7 @@ const getDashboardOverview = async (req, res) => {
         date: i._id,
         value: i.total,
       })),
-      pieData: [{ name: "Tong so tien giao dich", value: totalAmount }],
+      pieData: [{ name: "Tổng số tiền giao dịch", value: totalAmount }],
     });
   } catch (err) {
     return res.status(500).json({
@@ -378,6 +381,7 @@ const getDashboardOverview = async (req, res) => {
     });
   }
 };
+
 const getDashboardSummary = async (req, res) => {
   const { branch, fromDate, toDate } = req.query;
 

@@ -1,28 +1,8 @@
-import {
-  Button,
-  Card,
-  Form,
-  Image,
-  Input,
-  message,
-  Popconfirm,
-  Table,
-} from "antd";
+import { Button, Card, Form, Input, message, Popconfirm, Table } from "antd";
 import Adminlayout from "../../Layout/Adminlayout";
-import {
-  DeleteOutlined,
-  EditOutlined,
-  EyeInvisibleOutlined,
-  EyeOutlined,
-} from "@ant-design/icons";
+import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import { trimData, http } from "../../../modules/modules";
-
-import swal from "sweetalert";
-import { useState } from "react";
-import { useEffect } from "react";
-import { data } from "react-router-dom";
-
-// import Item from "antd/es/list/Item";
+import { useState, useEffect } from "react";
 
 const { Item } = Form;
 
@@ -35,7 +15,7 @@ const Currency = () => {
   const [edit, setEdit] = useState(null);
   const [no, setNo] = useState(0);
 
-  //get app employee data
+  // lấy danh sách tiền tệ
   useEffect(() => {
     const fetcher = async () => {
       try {
@@ -43,99 +23,101 @@ const Currency = () => {
         const { data } = await httpReq.get("/api/currency");
         setAllCurrency(data.data);
       } catch (err) {
-        messageApi.error("Unable to fetch data !");
+        messageApi.error("Không thể tải dữ liệu!");
       }
     };
     fetcher();
   }, [no]);
 
-  // create new employee
+  // tạo mới tiền tệ
   const onFinish = async (values) => {
     try {
       setLoading(true);
       let finalObj = trimData(values);
       finalObj.key = finalObj.currencyName;
+
       const httpReq = http();
-      const { data } = await httpReq.post(`/api/currency`, finalObj);
+      await httpReq.post(`/api/currency`, finalObj);
 
-      messageApi.success("Currency created !");
+      messageApi.success("Tạo loại tiền tệ thành công!");
       currencyForm.resetFields();
-
       setNo(no + 1);
     } catch (err) {
       if (err?.response?.data?.error?.code === 11000) {
         currencyForm.setFields([
           {
             name: "currencyName",
-            errors: ["Currency already exists !"],
+            errors: ["Loại tiền tệ đã tồn tại!"],
           },
         ]);
       } else {
-        messageApi.error("Try again later !");
+        messageApi.error("Vui lòng thử lại sau!");
       }
     } finally {
       setLoading(false);
     }
   };
 
-  // delete employee
+  // xoá tiền tệ
   const onDeleteCurrency = async (id) => {
     try {
       const httpReq = http();
       await httpReq.delete(`/api/currency/${id}`);
-      messageApi.success("Delete successfully !");
+      messageApi.success("Xoá thành công!");
       setNo(no + 1);
     } catch (err) {
-      messageApi.error("Unable to delete currency !");
+      messageApi.error("Không thể xoá loại tiền tệ!");
     }
   };
 
-  //update employee
+  // chỉnh sửa tiền tệ
   const onEditCurrency = async (obj) => {
     setEdit(obj);
     currencyForm.setFieldsValue(obj);
   };
 
+  // cập nhật tiền tệ
   const onUpdate = async (values) => {
     try {
       setLoading(true);
-
       let finalObj = trimData(values);
+
       const httpReq = http();
       await httpReq.put(`/api/currency/${edit._id}`, finalObj);
-      messageApi.success("Currency update successfully !");
+
+      messageApi.success("Cập nhật loại tiền tệ thành công!");
       setNo(no + 1);
       setEdit(null);
       currencyForm.resetFields();
     } catch (err) {
-      messageApi.error("Unable to update currency");
+      messageApi.error("Không thể cập nhật loại tiền tệ!");
     } finally {
       setLoading(false);
     }
   };
 
-  // columns for table
+  // cột bảng
   const columns = [
     {
-      title: "Currency Name",
+      title: "Tên loại tiền tệ",
       dataIndex: "currencyName",
       key: "currencyName",
     },
     {
-      title: "Currency Description",
+      title: "Mô tả",
       dataIndex: "currencyDesc",
       key: "currencyDesc",
     },
     {
-      title: "Action",
+      title: "Hành động",
       key: "action",
       fixed: "right",
       render: (_, obj) => (
         <div className="flex gap-1">
           <Popconfirm
-            title="Are you sure ?"
-            description="Once you update, you can also re-update !"
-            onCancel={() => messageApi.info("No chances occur  !")}
+            title="Bạn có chắc chắn không?"
+            description="Sau khi chỉnh sửa, bạn vẫn có thể chỉnh sửa lại."
+            onCancel={() => messageApi.info("Không có thay đổi nào xảy ra!")}
             onConfirm={() => onEditCurrency(obj)}
           >
             <Button
@@ -144,10 +126,11 @@ const Currency = () => {
               icon={<EditOutlined />}
             />
           </Popconfirm>
+
           <Popconfirm
-            title="Are you sure ?"
-            description="Once you delete, you can't also re-update !"
-            onCancel={() => messageApi.info("Your data is safe !")}
+            title="Bạn có chắc chắn không?"
+            description="Sau khi xoá, dữ liệu sẽ không thể khôi phục."
+            onCancel={() => messageApi.info("Dữ liệu của bạn vẫn an toàn!")}
             onConfirm={() => onDeleteCurrency(obj._id)}
           >
             <Button
@@ -165,7 +148,7 @@ const Currency = () => {
     <Adminlayout>
       {contex}
       <div className="grid md:grid-cols-3 gap-3">
-        <Card title="Add new Currency">
+        <Card title="Thêm loại tiền tệ mới">
           <Form
             form={currencyForm}
             onFinish={edit ? onUpdate : onFinish}
@@ -173,14 +156,18 @@ const Currency = () => {
           >
             <Item
               name="currencyName"
-              label="Currency Name"
-              rules={[{ required: true }]}
+              label="Tên loại tiền tệ"
+              rules={[
+                { required: true, message: "Vui lòng nhập tên tiền tệ!" },
+              ]}
             >
               <Input />
             </Item>
-            <Item name="currencyDesc" label="Currency Description">
+
+            <Item name="currencyDesc" label="Mô tả loại tiền tệ">
               <Input.TextArea />
             </Item>
+
             <Item>
               {edit ? (
                 <Button
@@ -189,7 +176,7 @@ const Currency = () => {
                   htmlType="submit"
                   className="!bg-rose-500 !text-white !font-bold !w-full"
                 >
-                  Update
+                  Cập nhật
                 </Button>
               ) : (
                 <Button
@@ -198,15 +185,16 @@ const Currency = () => {
                   htmlType="submit"
                   className="!bg-blue-500 !text-white !font-bold !w-full"
                 >
-                  Submit
+                  Thêm mới
                 </Button>
               )}
             </Item>
           </Form>
         </Card>
+
         <Card
           className="md:col-span-2"
-          title="Currency list"
+          title="Danh sách loại tiền tệ"
           style={{ overflowX: "auto" }}
         >
           <Table
@@ -219,4 +207,5 @@ const Currency = () => {
     </Adminlayout>
   );
 };
+
 export default Currency;

@@ -51,7 +51,7 @@ const Transfer = () => {
         fromAccountNo: Number(userInfo.accountNo),
         toBrandingId: values.brandingId,
         toBankCardNo: values.bankCardNo,
-        amount: Number(values.amount),
+        transactionAmount: Number(values.amount),
         otp: values.otp,
       });
 

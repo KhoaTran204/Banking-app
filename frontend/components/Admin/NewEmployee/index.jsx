@@ -27,10 +27,7 @@ import {
 import swal from "sweetalert";
 import { useState } from "react";
 import { useEffect } from "react";
-// import { data } from "react-router-dom";
 import useSWR from "swr";
-
-// import Item from "antd/es/list/Item";
 
 const { Item } = Form;
 
@@ -46,8 +43,8 @@ const NewEmployee = () => {
   const [edit, setEdit] = useState(null);
   const [no, setNo] = useState(0);
 
-  // get branch data
-  const { data: branches, error: bError } = useSWR("/api/branch", fetchData, {
+  // lấy dữ liệu chi nhánh
+  const { data: branches } = useSWR("/api/branch", fetchData, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
     refreshInterval: 1200000,
@@ -55,18 +52,16 @@ const NewEmployee = () => {
 
   useEffect(() => {
     if (branches) {
-      let filter =
-        branches &&
-        branches?.data.map((item) => ({
-          label: item.branchName,
-          value: item.branchName,
-          key: item.key,
-        }));
+      let filter = branches?.data.map((item) => ({
+        label: item.branchName,
+        value: item.branchName,
+        key: item.key,
+      }));
       setAllBranch(filter);
     }
   }, [branches]);
 
-  //get all employee data
+  // lấy danh sách nhân viên
   useEffect(() => {
     const fetcher = async () => {
       try {
@@ -77,13 +72,13 @@ const NewEmployee = () => {
         );
         setFinalEmployee(data.data);
       } catch (err) {
-        messageApi.error("Unable to fetch data !");
+        messageApi.error("Không thể tải dữ liệu !");
       }
     };
     fetcher();
   }, [no]);
 
-  // create new employee
+  // tạo nhân viên mới
   const onFinish = async (values) => {
     try {
       setLoading(true);
@@ -92,14 +87,15 @@ const NewEmployee = () => {
       finalObj.key = finalObj.email;
       finalObj.userType = "employee";
       const httpReq = http();
-      const { data } = await httpReq.post(`/api/users`, finalObj);
+      await httpReq.post(`/api/users`, finalObj);
+
       const obj = {
         email: finalObj.email,
         password: finalObj.password,
       };
-      const res = await httpReq.post(`/api/send-email`, obj);
-      console.log(res);
-      messageApi.success("Employee created !");
+      await httpReq.post(`/api/send-email`, obj);
+
+      messageApi.success("Tạo nhân viên thành công !");
       empForm.resetFields();
       setPhoto(null);
       setNo(no + 1);
@@ -108,71 +104,71 @@ const NewEmployee = () => {
         empForm.setFields([
           {
             name: "email",
-            errors: ["Email already exists !"],
+            errors: ["Email đã tồn tại !"],
           },
         ]);
       } else {
-        messageApi.error("Try again later !");
+        messageApi.error("Vui lòng thử lại sau !");
       }
     } finally {
       setLoading(false);
     }
   };
 
-  //update is active
+  // cập nhật trạng thái hoạt động
   const updateIsActive = async (id, isActive) => {
     try {
-      const obj = {
-        isActive: !isActive,
-      };
+      const obj = { isActive: !isActive };
       const httpReq = http();
       await httpReq.put(`/api/users/${id}`, obj);
-      messageApi.success("Record update successfully !");
+      messageApi.success("Cập nhật trạng thái thành công !");
       setNo(no + 1);
     } catch (err) {
-      messageApi.error("Unable to update is Active !");
+      messageApi.error("Không thể cập nhật trạng thái !");
     }
   };
 
-  //update employee
+  // chỉnh sửa nhân viên
   const onEditUser = async (obj) => {
     setEdit(obj);
     empForm.setFieldsValue(obj);
   };
+
   const onUpdate = async (values) => {
     try {
       setLoading(true);
       let finalObj = trimData(values);
       delete finalObj.password;
-      if (photo) {
-        finalObj.profile = photo;
-      }
+      if (photo) finalObj.profile = photo;
+
       const httpReq = http();
       await httpReq.put(`/api/users/${edit._id}`, finalObj);
-      messageApi.success("Employee update successfully !");
+
+      messageApi.success("Cập nhật nhân viên thành công !");
       setNo(no + 1);
       setEdit(null);
       setPhoto(null);
       empForm.resetFields();
     } catch (err) {
-      messageApi.error("Unable to update employee");
+      messageApi.error("Không thể cập nhật nhân viên !");
     } finally {
       setLoading(false);
     }
   };
-  // delete employee
+
+  // xoá nhân viên
   const onDeleteUser = async (id) => {
     try {
       const httpReq = http();
       await httpReq.delete(`/api/users/${id}`);
-      messageApi.success("Delete successfully !");
+      messageApi.success("Xoá thành công !");
       setNo(no + 1);
     } catch (err) {
-      messageApi.error("Unable to delete user !");
+      messageApi.error("Không thể xoá nhân viên !");
     }
   };
 
-  //handle upload
+  // upload ảnh
   const handleUpload = async (e) => {
     const file = e.target.files[0];
     const folderName = "employeePhoto";
@@ -181,37 +177,29 @@ const NewEmployee = () => {
       const result = await uploadFile(file, folderName);
       setPhoto(result.filePath);
     } catch (err) {
-      messageApi.error("Upload failed!");
+      messageApi.error("Tải ảnh thất bại !");
     }
   };
 
-  // search coding
+  // tìm kiếm
   const onSearh = (e) => {
     let value = e.target.value.trim().toLowerCase();
-    let filter =
-      finalEmployee &&
-      finalEmployee.filter((emp) => {
-        if (emp?.fullname.toLowerCase().indexOf(value) != -1) {
-          return emp;
-        } else if (emp?.userType.toLowerCase().indexOf(value) != -1) {
-          return emp;
-        } else if (emp?.email.toLowerCase().indexOf(value) != -1) {
-          return emp;
-        } else if (emp?.branch.toLowerCase().indexOf(value) != -1) {
-          return emp;
-        } else if (emp?.mobile.toLowerCase().indexOf(value) != -1) {
-          return emp;
-        } else if (emp?.address.toLowerCase().indexOf(value) != -1) {
-          return emp;
-        }
-      });
+    let filter = finalEmployee?.filter(
+      (emp) =>
+        emp?.fullname.toLowerCase().includes(value) ||
+        emp?.userType.toLowerCase().includes(value) ||
+        emp?.email.toLowerCase().includes(value) ||
+        emp?.branch.toLowerCase().includes(value) ||
+        emp?.mobile.toLowerCase().includes(value) ||
+        emp?.address.toLowerCase().includes(value)
+    );
     setAllEmployee(filter);
   };
 
-  // columns for table
+  // cột bảng
   const columns = [
     {
-      title: "Profile",
+      title: "Ảnh đại diện",
       key: "profile",
       render: (src, obj) => (
         <Image
@@ -223,26 +211,24 @@ const NewEmployee = () => {
       ),
     },
     {
-      title: "User type",
+      title: "Loại tài khoản",
       dataIndex: "userType",
       key: "userType",
       render: (text) => {
-        if (text === "admin") {
-          return <span className="capitalize text-indigo-500">{text}</span>;
-        } else if (text === "employee") {
-          return <span className="capitalize text-green-500">{text}</span>;
-        } else {
-          return <span className="capitalize text-red-500">{text}</span>;
-        }
+        if (text === "admin")
+          return <span className="capitalize text-indigo-500">Quản trị</span>;
+        if (text === "employee")
+          return <span className="capitalize text-green-500">Nhân viên</span>;
+        return <span className="capitalize text-red-500">Khách hàng</span>;
       },
     },
     {
-      title: "Branch",
+      title: "Chi nhánh",
       dataIndex: "branch",
       key: "branch",
     },
     {
-      title: "Fullname",
+      title: "Họ và tên",
       dataIndex: "fullname",
       key: "fullname",
     },
@@ -252,25 +238,25 @@ const NewEmployee = () => {
       key: "email",
     },
     {
-      title: "Mobile",
+      title: "Số điện thoại",
       dataIndex: "mobile",
       key: "mobile",
     },
     {
-      title: "Address",
+      title: "Địa chỉ",
       dataIndex: "address",
       key: "address",
     },
     {
-      title: "Action",
+      title: "Thao tác",
       key: "action",
       fixed: "right",
       render: (_, obj) => (
         <div className="flex gap-1">
           <Popconfirm
-            title="Are you sure ?"
-            description="Once you update, you can also re-update !"
-            onCancel={() => messageApi.info("No chances occur  !")}
+            title="Bạn có chắc chắn không ?"
+            description="Bạn có thể cập nhật lại sau."
+            onCancel={() => messageApi.info("Không có thay đổi nào !")}
             onConfirm={() => updateIsActive(obj._id, obj.isActive)}
           >
             <Button
@@ -283,10 +269,10 @@ const NewEmployee = () => {
               icon={obj.isActive ? <EyeOutlined /> : <EyeInvisibleOutlined />}
             />
           </Popconfirm>
+
           <Popconfirm
-            title="Are you sure ?"
-            description="Once you update, you can also re-update !"
-            onCancel={() => messageApi.info("No chances occur  !")}
+            title="Bạn có chắc chắn không ?"
+            description="Bạn có thể chỉnh sửa lại sau."
             onConfirm={() => onEditUser(obj)}
           >
             <Button
@@ -295,10 +281,11 @@ const NewEmployee = () => {
               icon={<EditOutlined />}
             />
           </Popconfirm>
+
           <Popconfirm
-            title="Are you sure ?"
-            description="Once you delete, you can't also re-update !"
-            onCancel={() => messageApi.info("Your data is safe !")}
+            title="Bạn có chắc chắn muốn xoá ?"
+            description="Sau khi xoá sẽ không thể khôi phục."
+            onCancel={() => messageApi.info("Dữ liệu của bạn vẫn an toàn !")}
             onConfirm={() => onDeleteUser(obj._id)}
           >
             <Button
@@ -316,7 +303,7 @@ const NewEmployee = () => {
     <Adminlayout>
       {contex}
       <div className="grid md:grid-cols-3 gap-3">
-        <Card title="Add new employee">
+        <Card title="Thêm nhân viên mới">
           <Form
             form={empForm}
             onFinish={edit ? onUpdate : onFinish}
@@ -324,74 +311,75 @@ const NewEmployee = () => {
           >
             <Item
               name="branch"
-              label="Select Branch"
+              label="Chọn chi nhánh"
               rules={[{ required: true }]}
             >
-              <Select placeholder="Select Branch" options={allBranch} />
+              <Select placeholder="Chọn chi nhánh" options={allBranch} />
             </Item>
-            <Item label="Profile" name="xyz">
+
+            <Item label="Ảnh đại diện" name="xyz">
               <Input onChange={handleUpload} type="file" />
             </Item>
+
             <div className="grid md:grid-cols-2 gap-x2">
               <Item
                 name="fullname"
-                label="Fullname"
+                label="Họ và tên"
                 rules={[{ required: true }]}
               >
                 <Input />
               </Item>
-              <Item name="mobile" label="Mobile" rules={[{ required: true }]}>
-                <Input type="number" />
-              </Item>
-              <Item name="email" label="Email" rules={[{ required: true }]}>
-                <Input disabled={edit ? true : false} />
-              </Item>
+
               <Item
-                name="password"
-                label="Password"
+                name="mobile"
+                label="Số điện thoại"
                 rules={[{ required: true }]}
               >
-                <Input disabled={edit ? true : false} />
+                <Input type="number" />
               </Item>
-              <Item name="address" label="Address">
+
+              <Item name="email" label="Email" rules={[{ required: true }]}>
+                <Input disabled={!!edit} />
+              </Item>
+
+              <Item
+                name="password"
+                label="Mật khẩu"
+                rules={[{ required: true }]}
+              >
+                <Input disabled={!!edit} />
+              </Item>
+
+              <Item name="address" label="Địa chỉ">
                 <Input.TextArea />
               </Item>
             </div>
+
             <Item>
-              {edit ? (
-                <Button
-                  loading={loading}
-                  type="text"
-                  htmlType="submit"
-                  className="!bg-rose-500 !text-white !font-bold !w-full"
-                >
-                  Update
-                </Button>
-              ) : (
-                <Button
-                  loading={loading}
-                  type="text"
-                  htmlType="submit"
-                  className="!bg-blue-500 !text-white !font-bold !w-full"
-                >
-                  Submit
-                </Button>
-              )}
+              <Button
+                loading={loading}
+                type="text"
+                htmlType="submit"
+                className={`${
+                  edit ? "!bg-rose-500" : "!bg-blue-500"
+                } !text-white !font-bold !w-full`}
+              >
+                {edit ? "Cập nhật" : "Thêm mới"}
+              </Button>
             </Item>
           </Form>
         </Card>
+
         <Card
           className="md:col-span-2"
-          title="Employee list"
+          title="Danh sách nhân viên"
           style={{ overflowX: "auto" }}
           extra={
-            <div>
-              <Input
-                placeholder="Search by all"
-                prefix={<SearchOutlined />}
-                onChange={onSearh}
-              />
-            </div>
+            <Input
+              placeholder="Tìm kiếm tất cả"
+              prefix={<SearchOutlined />}
+              onChange={onSearh}
+            />
           }
         >
           <Table
@@ -404,4 +392,5 @@ const NewEmployee = () => {
     </Adminlayout>
   );
 };
+
 export default NewEmployee;

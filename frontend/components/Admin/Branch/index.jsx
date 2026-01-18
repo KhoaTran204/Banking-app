@@ -1,28 +1,9 @@
-import {
-  Button,
-  Card,
-  Form,
-  Image,
-  Input,
-  message,
-  Popconfirm,
-  Table,
-} from "antd";
+import { Button, Card, Form, Input, message, Popconfirm, Table } from "antd";
 import Adminlayout from "../../Layout/Adminlayout";
-import {
-  DeleteOutlined,
-  EditOutlined,
-  EyeInvisibleOutlined,
-  EyeOutlined,
-} from "@ant-design/icons";
+import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import { trimData, http } from "../../../modules/modules";
 
-import swal from "sweetalert";
-import { useState } from "react";
-import { useEffect } from "react";
-import { data } from "react-router-dom";
-
-// import Item from "antd/es/list/Item";
+import { useState, useEffect } from "react";
 
 const { Item } = Form;
 
@@ -35,7 +16,7 @@ const Branch = () => {
   const [edit, setEdit] = useState(null);
   const [no, setNo] = useState(0);
 
-  //get app employee data
+  // lấy danh sách chi nhánh
   useEffect(() => {
     const fetcher = async () => {
       try {
@@ -43,55 +24,55 @@ const Branch = () => {
         const { data } = await httpReq.get("/api/branch");
         setAllBranch(data.data);
       } catch (err) {
-        messageApi.error("Unable to fetch data !");
+        messageApi.error("Không thể tải dữ liệu!");
       }
     };
     fetcher();
   }, [no]);
 
-  // create new employee
+  // tạo chi nhánh mới
   const onFinish = async (values) => {
     try {
       setLoading(true);
       let finalObj = trimData(values);
       finalObj.key = finalObj.branchName;
+
       const httpReq = http();
-      const { data } = await httpReq.post(`/api/branch`, finalObj);
+      await httpReq.post(`/api/branch`, finalObj);
 
-      messageApi.success("Branch created !");
+      messageApi.success("Tạo chi nhánh thành công!");
       branchForm.resetFields();
-
       setNo(no + 1);
     } catch (err) {
       if (err?.response?.data?.error?.code === 11000) {
         branchForm.setFields([
           {
             name: "branchName",
-            errors: ["Branch already exists !"],
+            errors: ["Chi nhánh đã tồn tại!"],
           },
         ]);
       } else {
-        messageApi.error("Try again later !");
+        messageApi.error("Vui lòng thử lại sau!");
       }
     } finally {
       setLoading(false);
     }
   };
 
-  // delete employee
+  // xóa chi nhánh
   const onDeleteBranch = async (id) => {
     try {
       const httpReq = http();
       await httpReq.delete(`/api/branch/${id}`);
-      messageApi.success("Delete successfully !");
+      messageApi.success("Xóa chi nhánh thành công!");
       setNo(no + 1);
     } catch (err) {
-      messageApi.error("Unable to delete branch !");
+      messageApi.error("Không thể xóa chi nhánh!");
     }
   };
 
-  //update employee
-  const onEditBranch = async (obj) => {
+  // chỉnh sửa chi nhánh
+  const onEditBranch = (obj) => {
     setEdit(obj);
     branchForm.setFieldsValue(obj);
   };
@@ -99,43 +80,45 @@ const Branch = () => {
   const onUpdate = async (values) => {
     try {
       setLoading(true);
-
       let finalObj = trimData(values);
+
       const httpReq = http();
       await httpReq.put(`/api/branch/${edit._id}`, finalObj);
-      messageApi.success("Branch update successfully !");
+
+      messageApi.success("Cập nhật chi nhánh thành công!");
       setNo(no + 1);
       setEdit(null);
       branchForm.resetFields();
     } catch (err) {
-      messageApi.error("Unable to update branch");
+      messageApi.error("Không thể cập nhật chi nhánh!");
     } finally {
       setLoading(false);
     }
   };
 
-  // columns for table
+  // cột bảng
   const columns = [
     {
-      title: "Branch Name",
+      title: "Tên chi nhánh",
       dataIndex: "branchName",
       key: "branchName",
     },
     {
-      title: "Branch Address",
+      title: "Địa chỉ chi nhánh",
       dataIndex: "branchAddress",
       key: "branchAddress",
     },
     {
-      title: "Action",
+      title: "Hành động",
       key: "action",
       fixed: "right",
       render: (_, obj) => (
         <div className="flex gap-1">
+          {/* Cập nhật */}
           <Popconfirm
-            title="Are you sure ?"
-            description="Once you update, you can also re-update !"
-            onCancel={() => messageApi.info("No chances occur  !")}
+            title="Bạn có chắc không?"
+            description="Sau khi cập nhật, bạn vẫn có thể chỉnh sửa lại."
+            onCancel={() => messageApi.info("Không có thay đổi nào xảy ra!")}
             onConfirm={() => onEditBranch(obj)}
           >
             <Button
@@ -144,10 +127,12 @@ const Branch = () => {
               icon={<EditOutlined />}
             />
           </Popconfirm>
+
+          {/* Xóa */}
           <Popconfirm
-            title="Are you sure ?"
-            description="Once you delete, you can't also re-update !"
-            onCancel={() => messageApi.info("Your data is safe !")}
+            title="Bạn có chắc không?"
+            description="Sau khi xóa, dữ liệu sẽ không thể khôi phục."
+            onCancel={() => messageApi.info("Dữ liệu của bạn vẫn an toàn!")}
             onConfirm={() => onDeleteBranch(obj._id)}
           >
             <Button
@@ -165,7 +150,7 @@ const Branch = () => {
     <Adminlayout>
       {contex}
       <div className="grid md:grid-cols-3 gap-3">
-        <Card title="Add new branch">
+        <Card title="Thêm chi nhánh mới">
           <Form
             form={branchForm}
             onFinish={edit ? onUpdate : onFinish}
@@ -173,14 +158,18 @@ const Branch = () => {
           >
             <Item
               name="branchName"
-              label="Branch Name"
-              rules={[{ required: true }]}
+              label="Tên chi nhánh"
+              rules={[
+                { required: true, message: "Vui lòng nhập tên chi nhánh!" },
+              ]}
             >
               <Input />
             </Item>
-            <Item name="branchAddress" label="Branch Address">
+
+            <Item name="branchAddress" label="Địa chỉ chi nhánh">
               <Input.TextArea />
             </Item>
+
             <Item>
               {edit ? (
                 <Button
@@ -189,7 +178,7 @@ const Branch = () => {
                   htmlType="submit"
                   className="!bg-rose-500 !text-white !font-bold !w-full"
                 >
-                  Update
+                  Cập nhật
                 </Button>
               ) : (
                 <Button
@@ -198,20 +187,22 @@ const Branch = () => {
                   htmlType="submit"
                   className="!bg-blue-500 !text-white !font-bold !w-full"
                 >
-                  Submit
+                  Thêm mới
                 </Button>
               )}
             </Item>
           </Form>
         </Card>
+
         <Card
           className="md:col-span-2"
-          title="Branch list"
+          title="Danh sách chi nhánh"
           style={{ overflowX: "auto" }}
         >
           <Table
             columns={columns}
             dataSource={allBranch}
+            rowKey="_id"
             scroll={{ x: "max-content" }}
           />
         </Card>
@@ -219,4 +210,5 @@ const Branch = () => {
     </Adminlayout>
   );
 };
+
 export default Branch;

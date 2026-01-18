@@ -21,7 +21,7 @@ const Employeelayout = ({ children }) => {
   const { pathname } = useLocation();
   console.log(pathname);
 
-  // logout Function
+  // Hàm đăng xuất
   const logoutFunc = () => {
     sessionStorage.removeItem("userInfo");
     cookies.remove("authToken");
@@ -32,17 +32,17 @@ const Employeelayout = ({ children }) => {
     {
       key: "/employee",
       icon: <DashOutlined />,
-      label: <Link to="/employee">Dashboard</Link>,
+      label: <Link to="/employee">Bảng điều khiển</Link>,
     },
     {
       key: "/employee/new-account",
       icon: <AccountBookOutlined />,
-      label: <Link to="/employee/new-account">New Account</Link>,
+      label: <Link to="/employee/new-account">Tạo tài khoản mới</Link>,
     },
     {
       key: "/employee/new-transaction",
       icon: <BranchesOutlined />,
-      label: <Link to="/employee/new-transaction">New Transaction</Link>,
+      label: <Link to="/employee/new-transaction">Tạo giao dịch mới</Link>,
     },
     {
       key: "/employee/logout",
@@ -53,7 +53,7 @@ const Employeelayout = ({ children }) => {
           className="!text-gray-300 !font-semibold"
           onClick={logoutFunc}
         >
-          Logout
+          Đăng xuất
         </Button>
       ),
     },
@@ -63,6 +63,7 @@ const Employeelayout = ({ children }) => {
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+
   return (
     <Layout className="!min-h-screen">
       <Sider trigger={null} collapsible collapsed={collapsed}>
@@ -74,6 +75,7 @@ const Employeelayout = ({ children }) => {
           items={items}
         />
       </Sider>
+
       <Layout>
         <Header style={{ padding: 0, background: colorBgContainer }}>
           <Button
@@ -87,6 +89,7 @@ const Employeelayout = ({ children }) => {
             }}
           />
         </Header>
+
         <Content
           style={{
             margin: "24px 16px",
@@ -102,4 +105,5 @@ const Employeelayout = ({ children }) => {
     </Layout>
   );
 };
+
 export default Employeelayout;

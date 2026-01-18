@@ -3,7 +3,6 @@ import Adminlayout from "../../Layout/Adminlayout";
 import { EditFilled } from "@ant-design/icons";
 import { http, trimData } from "../../../modules/modules";
 import { useState, useEffect } from "react";
-import Password from "antd/es/input/Password";
 
 const { Item } = Form;
 
@@ -16,7 +15,7 @@ const Branding = () => {
   const [no, setNo] = useState(0);
   const [edit, setEdit] = useState(false);
 
-  //get app branding data
+  // lấy thông tin thương hiệu ngân hàng
   useEffect(() => {
     const fetcher = async () => {
       try {
@@ -26,18 +25,19 @@ const Branding = () => {
         setBrandings(data?.data[0]);
         setEdit(true);
       } catch (err) {
-        messageApi.error("Unable to fetch data !");
+        messageApi.error("Không thể tải dữ liệu!");
       }
     };
     fetcher();
   }, [no]);
 
-  // store bank betails in database
+  // tạo mới thông tin ngân hàng
   const onFinish = async (values) => {
     try {
       setLoading(true);
       const finalObj = trimData(values);
       finalObj.bankLogo = photo ? photo : "bankImages/dummy.png";
+
       let userInfo = {
         fullname: finalObj.fullname,
         email: finalObj.email,
@@ -50,50 +50,54 @@ const Branding = () => {
       const httpReq = http();
       await httpReq.post("/api/branding", finalObj);
       await httpReq.post("/api/users", userInfo);
-      messageApi.success("Branding created sussessful !");
+
+      messageApi.success("Tạo thông tin thương hiệu thành công!");
       bankForm.resetFields();
       setPhoto(null);
       setNo(no + 1);
     } catch (err) {
-      messageApi.error("Unable to store branding!");
+      messageApi.error("Không thể lưu thông tin thương hiệu!");
     } finally {
       setLoading(false);
     }
   };
 
-  // update bank betails in database
+  // cập nhật thông tin ngân hàng
   const onUpdate = async (values) => {
     try {
       setLoading(true);
       const finalObj = trimData(values);
+
       if (photo) {
         finalObj.bankLogo = photo;
       }
 
       const httpReq = http();
       await httpReq.put(`/api/branding/${brandings._id}`, finalObj);
-      messageApi.success("Branding update sussessful !");
+
+      messageApi.success("Cập nhật thương hiệu thành công!");
       bankForm.resetFields();
       setPhoto(null);
       setNo(no + 1);
     } catch (err) {
-      messageApi.error("Unable to update branding!");
+      messageApi.error("Không thể cập nhật thông tin thương hiệu!");
     } finally {
       setLoading(false);
     }
   };
 
-  //handle upload
+  // xử lý upload logo
   const handleUpload = async (e) => {
     try {
       let file = e.target.files[0];
       const formData = new FormData();
       formData.append("photo", file);
+
       const httpReq = http();
       const { data } = await httpReq.post("/api/upload", formData);
       setPhoto(data.filePath);
     } catch (err) {
-      messageApi.error("Unable to upload !");
+      messageApi.error("Không thể tải ảnh lên!");
     }
   };
 
@@ -101,7 +105,7 @@ const Branding = () => {
     <Adminlayout>
       {contex}
       <Card
-        title="Bank Details"
+        title="Thông tin ngân hàng"
         extra={<Button onClick={() => setEdit(!edit)} icon={<EditFilled />} />}
       >
         <Form
@@ -112,43 +116,51 @@ const Branding = () => {
         >
           <div className="grid md:grid-cols-3 gap-x-3">
             <Item
-              label="Bank Name"
+              label="Tên ngân hàng"
               name="bankName"
-              rules={[{ required: true }]}
+              rules={[
+                { required: true, message: "Vui lòng nhập tên ngân hàng!" },
+              ]}
             >
               <Input />
             </Item>
+
             <Item
-              label="Bank Tagline"
+              label="Khẩu hiệu ngân hàng"
               name="bankTagline"
-              rules={[{ required: true }]}
+              rules={[{ required: true, message: "Vui lòng nhập khẩu hiệu!" }]}
             >
               <Input />
             </Item>
-            <Item label="Bank Logo" name="xyz">
+
+            <Item label="Logo ngân hàng" name="xyz">
               <Input type="file" onChange={handleUpload} />
             </Item>
+
             <Item
-              label="Bank Acount No"
+              label="Số tài khoản ngân hàng"
               name="bankAccountNo"
               rules={[{ required: true }]}
             >
               <Input />
             </Item>
+
             <Item
-              label="Bank Acount Transaction Id"
+              label="Mã giao dịch ngân hàng"
               name="bankTransactionId"
               rules={[{ required: true }]}
             >
               <Input />
             </Item>
+
             <Item
-              label="Bank Address"
+              label="Địa chỉ ngân hàng"
               name="bankAddress"
               rules={[{ required: true }]}
             >
               <Input />
             </Item>
+
             <div
               className={`${
                 brandings
@@ -157,40 +169,47 @@ const Branding = () => {
               }`}
             >
               <Item
-                label="Admin Fullname"
+                label="Họ tên quản trị viên"
                 name="fullname"
                 rules={[{ required: brandings ? false : true }]}
               >
                 <Input />
               </Item>
+
               <Item
-                label="Admin Email"
+                label="Email quản trị viên"
                 name="email"
                 rules={[{ required: brandings ? false : true }]}
               >
                 <Input />
               </Item>
+
               <Item
-                label="Admin Password"
+                label="Mật khẩu quản trị viên"
                 name="password"
                 rules={[{ required: brandings ? false : true }]}
               >
                 <Input.Password />
               </Item>
             </div>
-            <Item label="Bank LinkedIn" name="bankLinkedIn">
+
+            <Item label="LinkedIn ngân hàng" name="bankLinkedIn">
               <Input type="url" />
             </Item>
-            <Item label="Bank Twitter" name="bankTwitter">
+
+            <Item label="Twitter ngân hàng" name="bankTwitter">
               <Input type="url" />
             </Item>
-            <Item label="Bank Facebook" name="bankFacebook">
+
+            <Item label="Facebook ngân hàng" name="bankFacebook">
               <Input type="url" />
             </Item>
           </div>
-          <Item label="Bank description" name="bankDesc">
+
+          <Item label="Mô tả ngân hàng" name="bankDesc">
             <Input.TextArea />
           </Item>
+
           {brandings ? (
             <Item className="flex justify-end items-center">
               <Button
@@ -199,7 +218,7 @@ const Branding = () => {
                 htmlType="submit"
                 className="!bg-rose-500 !text-white !font-bold"
               >
-                Update
+                Cập nhật
               </Button>
             </Item>
           ) : (
@@ -210,7 +229,7 @@ const Branding = () => {
                 htmlType="submit"
                 className="!bg-blue-500 !text-white !font-bold"
               >
-                Submit
+                Lưu thông tin
               </Button>
             </Item>
           )}
@@ -219,4 +238,5 @@ const Branding = () => {
     </Adminlayout>
   );
 };
+
 export default Branding;

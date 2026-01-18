@@ -22,7 +22,7 @@ const Customerlayout = ({ children }) => {
   const { pathname } = useLocation();
   console.log(pathname);
 
-  // logout Function
+  // Hàm đăng xuất
   const logoutFunc = () => {
     sessionStorage.removeItem("userInfo");
     cookies.remove("authToken");
@@ -33,18 +33,18 @@ const Customerlayout = ({ children }) => {
     {
       key: "/customer",
       icon: <DashOutlined />,
-      label: <Link to="/customer">Dashboard</Link>,
+      label: <Link to="/customer">Bảng điều khiển</Link>,
     },
 
     {
       key: "/customer/transaction",
       icon: <BranchesOutlined />,
-      label: <Link to="/customer/transaction">Transactions</Link>,
+      label: <Link to="/customer/transaction">Lịch sử giao dịch</Link>,
     },
     {
       key: "/customer/transfer",
       icon: <BranchesOutlined />,
-      label: <Link to="/customer/transfer">Transfer</Link>,
+      label: <Link to="/customer/transfer">Chuyển tiền</Link>,
     },
     {
       key: "/customer/logout",
@@ -55,7 +55,7 @@ const Customerlayout = ({ children }) => {
           className="!text-gray-300 !font-semibold"
           onClick={logoutFunc}
         >
-          Logout
+          Đăng xuất
         </Button>
       ),
     },
@@ -65,6 +65,7 @@ const Customerlayout = ({ children }) => {
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+
   return (
     <Layout className="!min-h-screen">
       <Sider trigger={null} collapsible collapsed={collapsed}>
@@ -76,6 +77,7 @@ const Customerlayout = ({ children }) => {
           items={items}
         />
       </Sider>
+
       <Layout>
         <Header style={{ padding: 0, background: colorBgContainer }}>
           <Button
@@ -89,6 +91,7 @@ const Customerlayout = ({ children }) => {
             }}
           />
         </Header>
+
         <Content
           style={{
             margin: "24px 16px",
@@ -101,8 +104,11 @@ const Customerlayout = ({ children }) => {
           {children}
         </Content>
       </Layout>
+
+      {/* Chatbot */}
       <Chatbot />
     </Layout>
   );
 };
+
 export default Customerlayout;
