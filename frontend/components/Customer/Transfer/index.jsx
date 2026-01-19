@@ -10,19 +10,38 @@ const Transfer = () => {
   const [loading, setLoading] = useState(false);
   const [sendingOTP, setSendingOTP] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
+  const [receiverName, setReceiverName] = useState("");
 
   const [form] = Form.useForm();
   const [messageApi, context] = message.useMessage();
 
-  // lay userInfo
+  // Lấy thông tin người dùng
   const userInfo = JSON.parse(sessionStorage.getItem("userInfo"));
 
-  // lay branding
+  // Lấy danh sách ngân hàng (branding)
   const { data: brandings } = useSWR("/api/branding", fetchData, {
     revalidateOnFocus: false,
   });
 
-  // ===== GUI OTP =====
+  // ===== KIỂM TRA NGƯỜI NHẬN =====
+  const handleCheckReceiver = async (bankCardNo) => {
+    if (!bankCardNo) {
+      setReceiverName("");
+      return;
+    }
+
+    try {
+      const httpReq = http();
+      const res = await httpReq.get(
+        `/api/transfer/receiver?bankCardNo=${bankCardNo}`,
+      );
+      setReceiverName(res.data.fullName);
+    } catch (err) {
+      setReceiverName("");
+    }
+  };
+
+  // ===== GỬI OTP =====
   const handleSendOTP = async () => {
     try {
       setSendingOTP(true);
@@ -32,16 +51,16 @@ const Transfer = () => {
         accountNo: userInfo.accountNo,
       });
 
-      messageApi.success("OTP da duoc gui qua email");
+      messageApi.success("OTP đã được gửi qua email");
       setOtpSent(true);
     } catch (err) {
-      messageApi.error(err?.response?.data?.message || "Gui OTP that bai");
+      messageApi.error(err?.response?.data?.message || "Gửi OTP thất bại");
     } finally {
       setSendingOTP(false);
     }
   };
 
-  // ===== CHUYEN TIEN =====
+  // ===== CHUYỂN TIỀN =====
   const onFinish = async (values) => {
     try {
       setLoading(true);
@@ -55,11 +74,12 @@ const Transfer = () => {
         otp: values.otp,
       });
 
-      messageApi.success("Chuyen tien thanh cong!");
+      messageApi.success("Chuyển tiền thành công!");
       form.resetFields();
+      setReceiverName("");
       setOtpSent(false);
     } catch (err) {
-      messageApi.error(err?.response?.data?.message || "Chuyen tien that bai");
+      messageApi.error(err?.response?.data?.message || "Chuyển tiền thất bại");
     } finally {
       setLoading(false);
     }
@@ -70,22 +90,22 @@ const Transfer = () => {
       {context}
 
       <Card
-        title="Transfer Money"
+        title="Chuyển tiền"
         className="max-w-lg"
         extra={
           <span className="text-gray-500 text-sm">
-            Transfer money to another bank account
+            Chuyển tiền đến tài khoản ngân hàng khác
           </span>
         }
       >
         <Form layout="vertical" form={form} onFinish={onFinish}>
-          {/* ===== BRANDING ===== */}
+          {/* ===== NGÂN HÀNG ===== */}
           <Item
-            label="Bank (Branding)"
+            label="Ngân hàng"
             name="brandingId"
-            rules={[{ required: true, message: "Please select bank" }]}
+            rules={[{ required: true, message: "Vui lòng chọn ngân hàng" }]}
           >
-            <Select placeholder="Select bank">
+            <Select placeholder="Chọn ngân hàng">
               {(brandings?.data || brandings || []).map((b) => (
                 <Select.Option key={b._id} value={b._id}>
                   {b.bankName}
@@ -94,42 +114,55 @@ const Transfer = () => {
             </Select>
           </Item>
 
-          {/* ===== BANK CARD NO ===== */}
+          {/* ===== SỐ THẺ NGƯỜI NHẬN ===== */}
           <Item
-            label="Receiver Bank Card Number"
+            label="Số thẻ ngân hàng người nhận"
             name="bankCardNo"
             rules={[
-              { required: true, message: "Please enter bank card number" },
+              {
+                required: true,
+                message: "Vui lòng nhập số thẻ ngân hàng",
+              },
             ]}
           >
-            <Input placeholder="Enter receiver bank card number" />
+            <Input
+              placeholder="Nhập số thẻ ngân hàng người nhận"
+              onBlur={(e) => handleCheckReceiver(e.target.value)}
+            />
           </Item>
 
-          {/* ===== AMOUNT ===== */}
+          {/* ===== TÊN NGƯỜI NHẬN ===== */}
+          {receiverName && (
+            <Item label="Tên người nhận">
+              <Input value={receiverName} disabled />
+            </Item>
+          )}
+
+          {/* ===== SỐ TIỀN ===== */}
           <Item
-            label="Amount"
+            label="Số tiền"
             name="amount"
-            rules={[{ required: true, message: "Please enter amount" }]}
+            rules={[{ required: true, message: "Vui lòng nhập số tiền" }]}
           >
             <InputNumber
               className="w-full"
               min={1}
-              placeholder="Enter transfer amount"
+              placeholder="Nhập số tiền cần chuyển"
             />
           </Item>
 
           {/* ===== OTP ===== */}
           {otpSent && (
             <Item
-              label="OTP"
+              label="Mã OTP"
               name="otp"
-              rules={[{ required: true, message: "Please enter OTP" }]}
+              rules={[{ required: true, message: "Vui lòng nhập mã OTP" }]}
             >
-              <Input placeholder="Enter OTP sent to your email" />
+              <Input placeholder="Nhập mã OTP được gửi qua email" />
             </Item>
           )}
 
-          {/* ===== BUTTON GUI OTP ===== */}
+          {/* ===== NÚT GỬI OTP ===== */}
           {!otpSent && (
             <Button
               type="dashed"
@@ -138,11 +171,11 @@ const Transfer = () => {
               onClick={handleSendOTP}
               className="mb-3"
             >
-              Send OTP
+              Gửi OTP
             </Button>
           )}
 
-          {/* ===== SUBMIT ===== */}
+          {/* ===== XÁC NHẬN CHUYỂN TIỀN ===== */}
           <Button
             loading={loading}
             type="text"
@@ -151,7 +184,7 @@ const Transfer = () => {
             block
             disabled={!otpSent}
           >
-            Confirm Transfer
+            Xác nhận chuyển tiền
           </Button>
         </Form>
       </Card>

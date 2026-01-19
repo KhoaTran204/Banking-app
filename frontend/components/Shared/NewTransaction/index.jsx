@@ -1,24 +1,26 @@
 import { SearchOutlined } from "@ant-design/icons";
 import { Card, Form, Image, Input, Select, Button, Empty, message } from "antd";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { http, trimData } from "../../../modules/modules";
 
 const NewTransaction = () => {
-  //get userinfo from sessionStorage
+  // Lấy thông tin người dùng từ sessionStorage
   const userInfo = JSON.parse(sessionStorage.getItem("userInfo"));
 
-  // form info
+  // Form giao dịch
   const [transactionForm] = Form.useForm();
   const [messageApi, contexHolder] = message.useMessage();
 
-  // state collection
+  // State
   const [accountNo, setAccountNo] = useState(null);
   const [accountDetail, setAccountDetail] = useState(null);
 
+  // Xử lý tạo giao dịch mới
   const onFinish = async (values) => {
     try {
       const finalObj = trimData(values);
       let balance = 0;
+
       if (finalObj.transactionType === "cr") {
         balance =
           Number(accountDetail.finalBalance) +
@@ -28,23 +30,27 @@ const NewTransaction = () => {
           Number(accountDetail.finalBalance) -
           Number(finalObj.transactionAmount);
       }
+
       finalObj.currentBalance = accountDetail.finalBalance;
       finalObj.customerId = accountDetail._id;
       finalObj.accountNo = accountDetail.accountNo;
       finalObj.branch = userInfo.branch;
+
       const httpReq = http();
       await httpReq.post("/api/transaction", finalObj);
       await httpReq.put(`/api/customers/${accountDetail._id}`, {
         finalBalance: balance,
       });
-      messageApi.success("Transaction created successfully!");
+
+      messageApi.success("Tạo giao dịch thành công!");
       transactionForm.resetFields();
       setAccountDetail(null);
     } catch (error) {
-      messageApi.error("Unable to process transaction !");
+      messageApi.error("Không thể xử lý giao dịch!");
     }
   };
 
+  // Tìm kiếm theo số tài khoản
   const searchByAccountNo = async () => {
     try {
       const obj = {
@@ -53,14 +59,15 @@ const NewTransaction = () => {
       };
       const httpReq = http();
       const { data } = await httpReq.post(`/api/find-by-account`, obj);
+
       if (data?.data) {
-        setAccountDetail(data?.data);
+        setAccountDetail(data.data);
       } else {
-        messageApi.warning("There is no record of this account");
+        messageApi.warning("Không tìm thấy thông tin tài khoản!");
         setAccountDetail(null);
       }
     } catch (error) {
-      messageApi.error("Unable to find account details");
+      messageApi.error("Không thể tìm thông tin tài khoản!");
     }
   };
 
@@ -68,11 +75,11 @@ const NewTransaction = () => {
     <div>
       {contexHolder}
       <Card
-        title="New Transaction"
+        title="Giao dịch mới"
         extra={
           <Input
             onChange={(e) => setAccountNo(e.target.value)}
-            placeholder="Enter account number"
+            placeholder="Nhập số tài khoản"
             addonAfter={
               <SearchOutlined
                 onClick={searchByAccountNo}
@@ -84,47 +91,49 @@ const NewTransaction = () => {
       >
         {accountDetail ? (
           <div>
+            {/* Ảnh đại diện & chữ ký */}
             <div className="flex items-center justify-start gap-2">
               <Image
-                src={`${import.meta.env.VITE_BASEURL}/${
-                  accountDetail?.profile
-                }`}
+                src={`${import.meta.env.VITE_BASEURL}/${accountDetail?.profile}`}
                 width={120}
                 height={120}
                 className="rounded-full"
               />
               <Image
-                src={`${import.meta.env.VITE_BASEURL}/${
-                  accountDetail?.signature
-                }`}
+                src={`${import.meta.env.VITE_BASEURL}/${accountDetail?.signature}`}
                 width={120}
                 height={120}
                 className="rounded-full"
               />
             </div>
+
             <div className="mt-5 grid md:grid-cols-3 gap-8">
+              {/* Thông tin khách hàng */}
               <div className="mt-3 flex flex-col gap-3">
                 <div className="flex justify-between items-center">
-                  <b>Name: </b> <b>{accountDetail?.fullname}</b>
+                  <b>Họ và tên:</b> <b>{accountDetail?.fullname}</b>
                 </div>
                 <div className="flex justify-between items-center">
-                  <b>Mobile: </b> <b>{accountDetail?.mobile}</b>
+                  <b>Số điện thoại:</b> <b>{accountDetail?.mobile}</b>
                 </div>
                 <div className="flex justify-between items-center">
-                  <b>Balance: </b>
+                  <b>Số dư:</b>
                   <b>
-                    {accountDetail?.currency === "VND " ? "R " : "$ "}
                     {accountDetail?.finalBalance}
+                    {accountDetail?.currency === "vnd" ? " ₫" : " $"}
                   </b>
                 </div>
                 <div className="flex justify-between items-center">
-                  <b>DOB: </b> <b>{accountDetail?.dob}</b>
+                  <b>Ngày sinh:</b> <b>{accountDetail?.dob}</b>
                 </div>
                 <div className="flex justify-between items-center">
-                  <b>Currency: </b> <b>{accountDetail?.currency}</b>
+                  <b>Loại tiền tệ:</b> <b>{accountDetail?.currency}</b>
                 </div>
               </div>
+
               <div></div>
+
+              {/* Form giao dịch */}
               <Form
                 form={transactionForm}
                 onFinish={onFinish}
@@ -132,47 +141,50 @@ const NewTransaction = () => {
               >
                 <div className="grid md:grid-cols-2 gap-x-3">
                   <Form.Item
-                    label="Transaction Type"
+                    label="Loại giao dịch"
                     rules={[{ required: true }]}
                     name="transactionType"
                   >
                     <Select
-                      placeholder="Transaction Type"
-                      className="w-full"
+                      placeholder="Chọn loại giao dịch"
                       options={[
-                        { value: "cr", label: "CR" },
-                        { value: "dr", label: "DR" },
+                        { value: "cr", label: "Nạp tiền (CR)" },
+                        { value: "dr", label: "Rút tiền (DR)" },
                       ]}
                     />
                   </Form.Item>
+
                   <Form.Item
-                    label="Transaction Amount"
+                    label="Số tiền giao dịch"
                     rules={[{ required: true }]}
                     name="transactionAmount"
                   >
-                    <Input placeholder="500.00" type="number" />
+                    <Input placeholder="500000" type="number" />
                   </Form.Item>
                 </div>
-                <Form.Item label="Refrence" name="refrence">
+
+                <Form.Item label="Nội dung giao dịch" name="refrence">
                   <Input.TextArea />
                 </Form.Item>
+
                 <Form.Item>
                   <Button
                     type="text"
                     htmlType="submit"
                     className="!font-semibold !text-white !bg-blue-500 !w-full"
                   >
-                    Submit
+                    Xác nhận giao dịch
                   </Button>
                 </Form.Item>
               </Form>
             </div>
           </div>
         ) : (
-          <Empty />
+          <Empty description="Không có dữ liệu" />
         )}
       </Card>
     </div>
   );
 };
+
 export default NewTransaction;

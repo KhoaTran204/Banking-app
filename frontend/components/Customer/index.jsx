@@ -17,7 +17,7 @@ const CustomerDashboard = () => {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
       refreshInterval: 1200000,
-    }
+    },
   );
   console.log("userInfo:", userInfo);
 
@@ -25,7 +25,7 @@ const CustomerDashboard = () => {
     <Customerlayout>
       <DashboardCustomer data={trData && trData} />
       <div className="mt-8">
-        <Card title="Transactions history">
+        <Card title="Các giao dịch gần đây">
           <TransactionTable
             query={{ accountNo: userInfo?.accountNo, branch: userInfo?.branch }}
           />

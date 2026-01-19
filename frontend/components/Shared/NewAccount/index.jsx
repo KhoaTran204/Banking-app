@@ -56,7 +56,7 @@ const NewAccount = () => {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
       refreshInterval: 1200000,
-    }
+    },
   );
   //get customer data
   useEffect(() => {
@@ -65,13 +65,13 @@ const NewAccount = () => {
         const httpReq = http();
         const { data } = await httpReq.get("/api/customers");
         setAllCustomer(
-          data?.data?.filter((item) => item.branch == userInfo.branch)
+          data?.data?.filter((item) => item.branch == userInfo.branch),
         );
         setFinalCustomer(
-          data?.data?.filter((item) => item.branch == userInfo.branch)
+          data?.data?.filter((item) => item.branch == userInfo.branch),
         );
       } catch (err) {
-        messageApi.error("Unable to fetch data !");
+        messageApi.error("Không thể tải dữ liệu khách hàng!");
       }
     };
     fetcher();
@@ -123,21 +123,21 @@ const NewAccount = () => {
       setDocument(null);
       setNo(no + 1);
       setAccountModal(false);
-      messageApi.success("Account created !");
+      messageApi.success("Tạo tài khoản thành công!");
     } catch (err) {
       if (err?.response?.data?.error?.code === 11000) {
         accountForm.setFields([
           {
             name: "bankCardNo",
-            errors: ["Bank Card already exists !"],
+            errors: ["Số thẻ ngân hàng đã tồn tại!"],
           },
           {
             name: "email",
-            errors: ["Email already exists !"],
+            errors: ["Email đã tồn tại!"],
           },
         ]);
       } else {
-        messageApi.error("Try again later !");
+        messageApi.error("Vui lòng thử lại sau!");
       }
     } finally {
       setLoading(false);
@@ -153,7 +153,7 @@ const NewAccount = () => {
       const result = await uploadFile(file, folderName);
       setPhoto(result.filePath);
     } catch (err) {
-      messageApi.error("Upload failed!");
+      messageApi.error("Tải thất bại!");
     }
   };
   //handle Signature
@@ -165,7 +165,7 @@ const NewAccount = () => {
       const result = await uploadFile(file, folderName);
       setSignature(result.filePath);
     } catch (err) {
-      messageApi.error("Upload failed!");
+      messageApi.error("Tải thất bại!");
     }
   };
   //handle Document
@@ -177,7 +177,7 @@ const NewAccount = () => {
       const result = await uploadFile(file, folderName);
       setDocument(result.filePath);
     } catch (err) {
-      messageApi.error("Upload failed!");
+      messageApi.error("Tải thất bại!");
     }
   };
 
@@ -190,10 +190,10 @@ const NewAccount = () => {
       const httpReq = http();
       await httpReq.put(`/api/users/${loginId}`, obj);
       await httpReq.put(`/api/customers/${id}`, obj);
-      messageApi.success("Record update successfully !");
+      messageApi.success("Cập nhật trạng thái thành công!");
       setNo(no + 1);
     } catch (err) {
-      messageApi.error("Unable to update is Active !");
+      messageApi.error("Không thể cập nhật trạng thái!");
     }
   };
 
@@ -251,7 +251,7 @@ const NewAccount = () => {
       }
       const httpReq = http();
       await httpReq.put(`/api/customers/${edit._id}`, finalObj);
-      messageApi.success("Employee update successfully !");
+      messageApi.success("Cập nhật người dùng thành công");
       setNo(no + 1);
       setEdit(null);
       setPhoto(null);
@@ -260,7 +260,7 @@ const NewAccount = () => {
       setAccountModal(false);
       accountForm.resetFields();
     } catch (err) {
-      messageApi.error("Unable to update customer ");
+      messageApi.error("Cập nhật người dùng thành công");
     } finally {
       setLoading(false);
     }
@@ -271,17 +271,17 @@ const NewAccount = () => {
       const httpReq = http();
       await httpReq.delete(`/api/users/${loginId}`);
       await httpReq.delete(`/api/customers/${id}`);
-      messageApi.success("Delete customer successfully !");
+      messageApi.success("Xoá khách hàng thành công!");
       setNo(no + 1);
     } catch (err) {
-      messageApi.error("Unable to delete user !");
+      messageApi.error("Không thể xoá khách hàng!");
     }
   };
 
   // columns for table
   const columns = [
     {
-      title: "Photo",
+      title: "Ảnh đại diện",
       key: "photo",
       render: (src, obj) => (
         <Image
@@ -293,7 +293,7 @@ const NewAccount = () => {
       ),
     },
     {
-      title: "Signature",
+      title: "Chữ ký",
       key: "signature",
       render: (src, obj) => (
         <Image
@@ -305,7 +305,7 @@ const NewAccount = () => {
       ),
     },
     {
-      title: "Document",
+      title: "Tài liệu",
       key: "document",
       render: (src, obj) => (
         <Button
@@ -316,19 +316,19 @@ const NewAccount = () => {
           onClick={() =>
             window.open(
               `${import.meta.env.VITE_BASEURL}/${obj?.document}`,
-              "_blank"
+              "_blank",
             )
           }
         />
       ),
     },
     {
-      title: "Branch",
+      title: "Chi nhánh",
       dataIndex: "branch",
       key: "branch",
     },
     {
-      title: "User type",
+      title: "Loại người dùng",
       dataIndex: "userType",
       key: "userType",
       render: (text) => {
@@ -342,30 +342,35 @@ const NewAccount = () => {
       },
     },
     {
-      title: "Account No",
+      title: "STT",
       dataIndex: "accountNo",
       key: "accountNo",
     },
 
     // ✅ CỘT MỚI – BANK CARD NUMBER
     {
-      title: "Bank Card No",
+      title: "Số thẻ ngân hàng",
       dataIndex: "bankCardNo",
       key: "bankCardNo",
     },
+    {
+      title: "Số CDCD",
+      dataIndex: "fathername",
+      key: "fathername",
+    },
 
     {
-      title: "Balance",
+      title: "Số dư",
       dataIndex: "finalBalance",
       key: "finalBalance",
     },
     {
-      title: "Fullname",
+      title: "Họ và tên",
       dataIndex: "fullname",
       key: "fullname",
     },
     {
-      title: "DOB",
+      title: "Ngày sinh",
       dataIndex: "dob",
       key: "dob",
     },
@@ -375,30 +380,31 @@ const NewAccount = () => {
       key: "email",
     },
     {
-      title: "Mobile",
+      title: "SDT",
       dataIndex: "mobile",
       key: "mobile",
     },
     {
-      title: "Address",
+      title: "Địa chỉ",
       dataIndex: "address",
       key: "address",
     },
     {
-      title: "Created By",
+      title: "Tạo bởi",
       dataIndex: "createdBy",
       key: "createdBy",
     },
     {
-      title: "Action",
+      title: "Trạng thái",
       key: "action",
       fixed: "right",
       render: (_, obj) => (
         <div className="flex gap-1">
+          {/* ===== KÍCH HOẠT / VÔ HIỆU HOÁ ===== */}
           <Popconfirm
-            title="Are you sure ?"
-            description="Once you update, you can also re-update !"
-            onCancel={() => messageApi.info("No chances occur  !")}
+            title="Bạn có chắc chắn không?"
+            description="Sau khi cập nhật, bạn vẫn có thể thay đổi lại."
+            onCancel={() => messageApi.info("Không có thay đổi nào xảy ra!")}
             onConfirm={() =>
               updateIsActive(obj._id, obj.isActive, obj.customerLoginId)
             }
@@ -414,10 +420,11 @@ const NewAccount = () => {
             />
           </Popconfirm>
 
+          {/* ===== CHỈNH SỬA ===== */}
           <Popconfirm
-            title="Are you sure ?"
-            description="Once you update, you can also re-update !"
-            onCancel={() => messageApi.info("No chances occur  !")}
+            title="Bạn có chắc chắn không?"
+            description="Bạn có thể chỉnh sửa lại thông tin sau đó."
+            onCancel={() => messageApi.info("Không có thay đổi nào xảy ra!")}
             onConfirm={() => onEditCustomer(obj)}
           >
             <Button
@@ -427,10 +434,11 @@ const NewAccount = () => {
             />
           </Popconfirm>
 
+          {/* ===== XOÁ ===== */}
           <Popconfirm
-            title="Are you sure ?"
-            description="Once you delete, you can't also re-update !"
-            onCancel={() => messageApi.info("Your data is safe !")}
+            title="Bạn có chắc chắn không?"
+            description="Sau khi xoá, dữ liệu sẽ không thể khôi phục!"
+            onCancel={() => messageApi.info("Dữ liệu của bạn vẫn an toàn!")}
             onConfirm={() => onDeleteCustomer(obj._id, obj.customerLoginId)}
           >
             <Button
@@ -455,12 +463,12 @@ const NewAccount = () => {
       {contex}
       <div className="grid">
         <Card
-          title="Account List"
+          title="Danh sách tài khoản"
           style={{ overflowX: "auto" }}
           extra={
             <div className="flex gap-x-3">
               <Input
-                placeholder="Search by all"
+                placeholder="Tìm kiếm theo tất cả"
                 prefix={<SearchOutlined />}
                 onChange={onSearh}
               />
@@ -469,7 +477,7 @@ const NewAccount = () => {
                 type="text"
                 className="!font-bold !bg-blue-500 !text-white"
               >
-                Add new account
+                Thêm tài khoản mới
               </Button>
             </div>
           }
@@ -481,12 +489,13 @@ const NewAccount = () => {
           />
         </Card>
       </div>
+
       <Modal
         open={accountModal}
         onCancel={onCloseModal}
         width={820}
         footer={null}
-        title="Open New Account"
+        title="Mở tài khoản mới"
       >
         <Form
           layout="vertical"
@@ -497,12 +506,12 @@ const NewAccount = () => {
           {!edit && (
             <div className="grid md:grid-cols-3 gap-x-3">
               <Item
-                label="Branding"
+                label="Ngân hàng"
                 name="brandingId"
                 rules={[{ required: true }]}
               >
                 <Select
-                  placeholder="Select branding"
+                  placeholder="Chọn ngân hàng"
                   onChange={onSelectBranding}
                   options={brandings?.data?.map((b) => ({
                     label: b.bankName,
@@ -512,11 +521,11 @@ const NewAccount = () => {
               </Item>
 
               <Item
-                label="Bank Card Number"
+                label="Số thẻ ngân hàng"
                 name="bankCardNo"
                 rules={[{ required: true }]}
               >
-                <Input placeholder="Enter bank card number" />
+                <Input placeholder="Nhập số thẻ ngân hàng" />
               </Item>
             </div>
           )}
@@ -525,67 +534,75 @@ const NewAccount = () => {
           {!edit && (
             <div className="grid md:grid-cols-3 gap-x-3">
               <Item
-                label="Account No"
+                label="Số tài khoản"
                 name="accountNo"
                 rules={[{ required: true }]}
               >
-                <Input disabled placeholder="Account no" />
+                <Input disabled placeholder="Số tài khoản" />
               </Item>
 
               <Item label="Email" name="email" rules={[{ required: true }]}>
                 <Input
                   disabled={edit ? true : false}
-                  placeholder="Enter email"
+                  placeholder="Nhập email"
                 />
               </Item>
 
               <Item
-                label="Password"
+                label="Mật khẩu"
                 name="password"
                 rules={[{ required: edit ? false : true }]}
               >
                 <Input
                   disabled={edit ? true : false}
-                  placeholder="Enter password"
+                  placeholder="Nhập mật khẩu"
                 />
               </Item>
             </div>
           )}
 
           <div className="grid md:grid-cols-3 gap-x-3">
-            <Item label="Fullname" name="fullname" rules={[{ required: true }]}>
-              <Input placeholder="Enter fullname" />
-            </Item>
-
-            <Item label="Mobile" name="mobile" rules={[{ required: true }]}>
-              <Input placeholder="Enter mobile" />
+            <Item
+              label="Họ và tên"
+              name="fullname"
+              rules={[{ required: true }]}
+            >
+              <Input placeholder="Nhập họ và tên" />
             </Item>
 
             <Item
-              label="Fathername"
-              name="fathername"
+              label="Số điện thoại"
+              name="mobile"
               rules={[{ required: true }]}
             >
-              <Input placeholder="Enter fathername" />
+              <Input placeholder="Nhập số điện thoại" />
             </Item>
 
-            <Item label="DOB" name="dob" rules={[{ required: true }]}>
+            <Item label="CDCD" name="fathername" rules={[{ required: true }]}>
+              <Input placeholder="Nhập số CDCD" />
+            </Item>
+
+            <Item label="Ngày sinh" name="dob" rules={[{ required: true }]}>
               <Input type="date" />
             </Item>
 
-            <Item label="Gender" name="gender" rules={[{ required: true }]}>
+            <Item label="Giới tính" name="gender" rules={[{ required: true }]}>
               <Select
-                placeholder="Select Gender"
+                placeholder="Chọn giới tính"
                 options={[
-                  { label: "Male", value: "male" },
-                  { label: "Female", value: "female" },
+                  { label: "Nam", value: "male" },
+                  { label: "Nữ", value: "female" },
                 ]}
               />
             </Item>
 
-            <Item label="Currency" name="currency" rules={[{ required: true }]}>
+            <Item
+              label="Loại tiền tệ"
+              name="currency"
+              rules={[{ required: true }]}
+            >
               <Select
-                placeholder="Select currency"
+                placeholder="Chọn loại tiền tệ"
                 options={[
                   { label: "VND", value: "vnd" },
                   { label: "USD", value: "usd" },
@@ -593,20 +610,20 @@ const NewAccount = () => {
               />
             </Item>
 
-            <Item label="Photo" name="xyz">
+            <Item label="Ảnh cá nhân" name="xyz">
               <Input type="file" onChange={handlePhoto} />
             </Item>
 
-            <Item label="Signature" name="dfr">
+            <Item label="Chữ ký" name="dfr">
               <Input type="file" onChange={handleSignature} />
             </Item>
 
-            <Item label="Document" name="hus">
+            <Item label="Tài liệu" name="hus">
               <Input type="file" onChange={handleDocument} />
             </Item>
           </div>
 
-          <Item label="Address" name="address" rules={[{ required: true }]}>
+          <Item label="Địa chỉ" name="address" rules={[{ required: true }]}>
             <Input.TextArea />
           </Item>
 
@@ -617,7 +634,7 @@ const NewAccount = () => {
               htmlType="submit"
               className="!font-semibold !text-white !bg-blue-500"
             >
-              Submit
+              Xác nhận
             </Button>
           </Item>
         </Form>

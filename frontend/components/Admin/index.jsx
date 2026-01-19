@@ -19,7 +19,7 @@ const AdminDashboard = () => {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
       refreshInterval: 1200000,
-    }
+    },
   );
 
   /* ===== NORMALIZE DATA FOR DASHBOARD ===== */
@@ -35,13 +35,13 @@ const AdminDashboard = () => {
       <Dashboard data={dashboardData} />
 
       <div className="mt-8">
-        <Card title="Recently Created Accounts">
+        <Card title="Danh sách tài khoản mới tạo">
           <AccountTable query={{ branch: userInfo?.branch }} />
         </Card>
       </div>
 
       <div className="mt-8">
-        <Card title="Transactions history">
+        <Card title="Lịch sử giao dịch">
           <TransactionTable query={{ branch: userInfo?.branch }} />
         </Card>
       </div>

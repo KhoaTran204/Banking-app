@@ -19,7 +19,7 @@ const EmployeeDashboard = () => {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
       refreshInterval: 1200000,
-    }
+    },
   );
 
   /* ===== NORMALIZE DATA ===== */
@@ -35,13 +35,13 @@ const EmployeeDashboard = () => {
       <Dashboard data={dashboardData} />
 
       <div className="mt-8">
-        <Card title="Recently Created Accounts">
+        <Card title="Danh sách tài khoản mới tạo">
           <AccountTable query={{ branch: userInfo?.branch }} />
         </Card>
       </div>
 
       <div className="mt-8">
-        <Card title="Transactions history">
+        <Card title="Các giao dịch gần đây">
           <TransactionTable query={{ branch: userInfo?.branch }} />
         </Card>
       </div>

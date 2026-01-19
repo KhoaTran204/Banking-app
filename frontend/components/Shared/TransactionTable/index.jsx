@@ -13,6 +13,7 @@ const TransactionTable = ({ query = {} }) => {
   });
   const [loading, setLoading] = useState(false);
 
+  // Lấy danh sách giao dịch (có phân trang)
   const fetchTransactions = async (params = {}) => {
     setLoading(true);
     const searchParams = new URLSearchParams({
@@ -20,14 +21,16 @@ const TransactionTable = ({ query = {} }) => {
       pageSize: params.pageSize || 10,
     });
 
-    // Add filters from state OR initial query
+    // Thêm bộ lọc từ state hoặc query ban đầu
     if (accountNo) searchParams.append("accountNo", accountNo);
     if (branch) searchParams.append("branch", branch);
+
     try {
       const httpReq = http();
       const res = await httpReq.get(
-        `/api/transaction/pagination?${searchParams.toString()}`
+        `/api/transaction/pagination?${searchParams.toString()}`,
       );
+
       setData(res.data.data);
       setTotal(res.data.total);
       setPagination({
@@ -35,7 +38,7 @@ const TransactionTable = ({ query = {} }) => {
         pageSize: res.data.pageSize,
       });
     } catch (err) {
-      console.error("Failed to fetch transactions", err);
+      console.error("Không thể tải danh sách giao dịch", err);
     } finally {
       setLoading(false);
     }
@@ -43,7 +46,7 @@ const TransactionTable = ({ query = {} }) => {
 
   useEffect(() => {
     fetchTransactions(pagination);
-  }, [query]); // Re-run when new props come in
+  }, [query]); // Chạy lại khi props query thay đổi
 
   const handleTableChange = (pagination) => {
     fetchTransactions(pagination);
@@ -51,27 +54,29 @@ const TransactionTable = ({ query = {} }) => {
 
   const columns = [
     {
-      title: "Account No",
+      title: "Số tài khoản",
       dataIndex: "accountNo",
       key: "accountNo",
     },
+
     {
-      title: "Branch",
+      title: "Chi nhánh",
       dataIndex: "branch",
       key: "branch",
     },
     {
-      title: "Type",
+      title: "Loại giao dịch",
       dataIndex: "transactionType",
       key: "transactionType",
+      render: (type) => (type === "cr" ? "Chuyển tiền (CD)" : "Rút tiền (DB)"),
     },
     {
-      title: "Amount",
+      title: "Số tiền",
       dataIndex: "transactionAmount",
       key: "transactionAmount",
     },
     {
-      title: "Date",
+      title: "Ngày giao dịch",
       dataIndex: "createdAt",
       key: "createdAt",
       render: (d) => formatDate(d),

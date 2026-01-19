@@ -14,4 +14,9 @@ router.post("/send-otp", controller.sendTransferOTP);
  */
 router.post("/confirm", controller.confirmTransferWithOTP);
 
+/**
+ * Lay thong tin nguoi nhan theo bankCardNo (MOI THEM)
+ * GET /api/transfer/receiver?bankCardNo=xxxx
+ */
+router.get("/receiver", controller.getReceiverByBankCard);
 module.exports = router;

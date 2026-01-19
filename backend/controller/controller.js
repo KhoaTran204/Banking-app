@@ -459,6 +459,30 @@ const getDashboardSummary = async (req, res) => {
   }
 };
 
+// ================= GET RECEIVER BY BANK CARD =================
+const getReceiverByBankCard = async (req, res) => {
+  const { bankCardNo } = req.query;
+
+  try {
+    const receiver = await Customer.findOne({ bankCardNo });
+
+    if (!receiver) {
+      return res.status(404).json({
+        message: "Receiver not found",
+      });
+    }
+
+    return res.status(200).json({
+      fullName: receiver.fullname,
+      accountNo: receiver.accountNo,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      message: "Get receiver failed",
+    });
+  }
+};
+
 module.exports = {
   // ================= CRUD COMMON =================
   createData,
@@ -472,6 +496,7 @@ module.exports = {
   getTransactionSummary,
   getPaginatedTransactions,
   getDashboardOverview,
+  getReceiverByBankCard,
   // transferMoney,
   // ================= OTP =================
   sendTransferOTP,

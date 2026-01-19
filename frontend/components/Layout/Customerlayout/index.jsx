@@ -33,7 +33,7 @@ const Customerlayout = ({ children }) => {
     {
       key: "/customer",
       icon: <DashOutlined />,
-      label: <Link to="/customer">Bảng điều khiển</Link>,
+      label: <Link to="/customer">Trang chủ</Link>,
     },
 
     {
