@@ -16,7 +16,7 @@ const sendEmail = (req, res) => {
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>Account Details</title>
+    <title>Chi tiết tài khoản</title>
   </head>
   <body style="margin: 0; padding: 0; background-color: #f4f4f4">
     <table
@@ -51,8 +51,8 @@ const sendEmail = (req, res) => {
             <tr>
               <td align="center" style="padding: 20px 0">
                 <img
-                  src="https://www.justforcode.in/images/logo.jpg"
-                  alt="Company Logo"
+                  src=""
+                  alt="Logo công ty"
                   width="120"
                   style="display: block"
                 />
@@ -70,17 +70,17 @@ const sendEmail = (req, res) => {
                   font-weight: bold;
                 "
               >
-                JFC Corporative Bank
+                Ngân hàng Doanh nghiệp
               </td>
             </tr>
 
             <tr>
               <td style="padding: 20px">
                 <h2 style="font-size: 20px; margin-bottom: 15px; color: #333">
-                  Welcome to Our Platform!
+                  Chào mừng bạn đến với nền tảng của chúng tôi!
                 </h2>
                 <p style="font-size: 16px; color: #555">
-                  Here are your login credentials:
+                  Dưới đây là thông tin đăng nhập của bạn:
                 </p>
                 <table
                   cellpadding="10"
@@ -89,20 +89,19 @@ const sendEmail = (req, res) => {
                   style="margin-top: 10px; border: 1px solid #ddd"
                 >
                   <tr style="background-color: #f9f9f9">
-                    <td style="font-weight: bold; width: 30%">Username:</td>
+                    <td style="font-weight: bold; width: 30%">Tên đăng nhập:</td>
                     <td>${email}</td>
                   </tr>
                   <tr style="background-color: #f9f9f9">
-                    <td style="font-weight: bold">Password:</td>
+                    <td style="font-weight: bold">Mật khẩu:</td>
                     <td>${password}</td>
                   </tr>
                 </table>
                 <p style="margin-top: 20px; font-size: 14px; color: #888">
-                  Please keep this information secure and do not share it with
-                  anyone.
+                  Vui lòng bảo mật thông tin này và không chia sẻ cho bất kỳ ai.
                 </p>
                 <p style="margin-top: 30px; font-size: 16px">
-                  Best regards,<br /><br />
+                  Trân trọng,<br /><br />
                 </p>
               </td>
             </tr>
@@ -117,7 +116,7 @@ const sendEmail = (req, res) => {
                   color: #666;
                 "
               >
-                &copy; 2025 JFC Corporative Bank . All rights reserved.
+                &copy; 2025 Ngân hàng Doanh nghiệp. Mọi quyền được bảo lưu.
               </td>
             </tr>
           </table>
@@ -126,6 +125,7 @@ const sendEmail = (req, res) => {
     </table>
   </body>
 </html>
+
 
     `;
   const mailOption = {

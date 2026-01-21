@@ -1,29 +1,38 @@
-import React, { useState } from "react";
-import {
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
-  UploadOutlined,
-  UserOutlined,
-  VideoCameraOutlined,
-} from "@ant-design/icons";
-import { Button, Layout, Menu, theme } from "antd";
-import { Link } from "react-router-dom";
-const { Header, Sider, Content } = Layout;
+import { Layout, theme } from "antd";
+import { useLocation } from "react-router-dom";
+
+const { Header, Content } = Layout;
+
 const Homelayout = ({ children }) => {
-  // const [collapsed, setCollapsed] = useState(false);
+  const location = useLocation();
+
+  // Trang đăng nhập
+  const isLoginPage =
+    location.pathname === "/" || location.pathname === "/login";
+
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+
   return (
-    <Layout>
-      <Header style={{ padding: 0, background: colorBgContainer }}></Header>
+    <Layout className="min-h-screen bg-gradient-to-br from-indigo-100 to-purple-100">
+      {/* Header chỉ hiện khi KHÔNG phải trang login */}
+      {!isLoginPage && (
+        <Header
+          style={{
+            padding: 0,
+            background: colorBgContainer,
+          }}
+        />
+      )}
+
       <Content
         style={{
-          margin: "24px 16px",
-          padding: 24,
-          minHeight: 280,
-          background: colorBgContainer,
-          borderRadius: borderRadiusLG,
+          margin: isLoginPage ? 0 : "24px 16px",
+          padding: isLoginPage ? 0 : 24,
+          minHeight: "100vh",
+          background: "transparent",
+          borderRadius: isLoginPage ? 0 : borderRadiusLG,
         }}
       >
         {children}
@@ -31,4 +40,5 @@ const Homelayout = ({ children }) => {
     </Layout>
   );
 };
+
 export default Homelayout;

@@ -29,7 +29,7 @@ const DashboardCustomer = () => {
     const fetchAll = async () => {
       const httpReq = http();
       const res = await httpReq.get(
-        `/api/transaction/pagination?page=1&pageSize=200&accountNo=${userInfo.accountNo}`
+        `/api/transaction/pagination?page=1&pageSize=200&accountNo=${userInfo.accountNo}`,
       );
       setAllTransactions(res.data?.data || []);
     };
@@ -56,19 +56,15 @@ const DashboardCustomer = () => {
     return (
       <div className="bg-white p-3 border rounded-lg shadow text-sm space-y-1">
         <div className="font-semibold">Ngày {label}</div>
-
         <div className="text-blue-600">
           Tiền vào: +{data.credit.toLocaleString()} VND
         </div>
-
         <div className="text-red-500">
           Tiền ra: -{data.debit.toLocaleString()} VND
         </div>
-
         <div className="font-semibold text-gray-700">
           Số dư: {data.balance.toLocaleString()} VND
         </div>
-
         {data.isPeak && <Tag color="volcano">Biến động lớn</Tag>}
       </div>
     );
@@ -80,16 +76,13 @@ const DashboardCustomer = () => {
     const end = toDate ? dayjs(toDate).endOf("day") : null;
 
     const currentList = filterByDate(allTransactions, start, end).filter(
-      (t) => t.status === "success"
+      (t) => t.status === "success",
     );
 
-    /* ===== DAILY CASHFLOW ===== */
     const map = {};
     currentList.forEach((t) => {
       const date = dayjs(t.createdAt).format("DD-MM");
-      if (!map[date]) {
-        map[date] = { date, credit: 0, debit: 0 };
-      }
+      if (!map[date]) map[date] = { date, credit: 0, debit: 0 };
       if (t.transactionType === "cr") map[date].credit += t.transactionAmount;
       if (t.transactionType === "dr") map[date].debit += t.transactionAmount;
     });
@@ -105,35 +98,27 @@ const DashboardCustomer = () => {
         if (diff > maxDiff) maxDiff = diff;
         return { ...d, balance, diff };
       })
-      .map((d) => ({
-        ...d,
-        isPeak: d.diff === maxDiff && maxDiff > 0,
-      }));
+      .map((d) => ({ ...d, isPeak: d.diff === maxDiff && maxDiff > 0 }));
 
     setChartData(daily);
 
-    /* ===== SUMMARY ===== */
     const totalIn = daily.reduce((s, d) => s + d.credit, 0);
     const totalOut = daily.reduce((s, d) => s + d.debit, 0);
 
     setSummary([
       { label: "Tổng tiền vào", value: `${totalIn.toLocaleString()} VND` },
       { label: "Tổng tiền ra", value: `${totalOut.toLocaleString()} VND` },
-      {
-        label: "Số dư cuối kỳ",
-        value: `${balance.toLocaleString()} VND`,
-      },
+      { label: "Số dư cuối kỳ", value: `${balance.toLocaleString()} VND` },
       { label: "Số ngày giao dịch", value: `${daily.length} ngày` },
     ]);
 
-    /* ===== COMPARE PREVIOUS PERIOD ===== */
     if (start && end) {
       const days = end.diff(start, "day") + 1;
       const prevStart = start.subtract(days, "day");
       const prevEnd = start.subtract(1, "day");
 
       const prevList = filterByDate(allTransactions, prevStart, prevEnd).filter(
-        (t) => t.status === "success"
+        (t) => t.status === "success",
       );
 
       const prevIn = prevList
@@ -148,28 +133,28 @@ const DashboardCustomer = () => {
   }, [allTransactions, fromDate, toDate]);
 
   return (
-    <div className="w-full px-6 lg:px-10 space-y-10">
+    <div className="w-full px-4 lg:px-6 space-y-6">
       {/* HEADER */}
-      <div className="flex justify-between">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">Tổng quan tài khoản</h1>
+          <h1 className="text-xl font-semibold">Tổng quan tài khoản</h1>
           <p className="text-gray-500 text-sm">
             Dòng tiền – Số dư – So sánh kỳ
           </p>
         </div>
 
-        <div className="flex gap-3">
-          <DatePicker value={fromDate} onChange={setFromDate} />
-          <DatePicker value={toDate} onChange={setToDate} />
+        <div className="flex gap-2">
+          <DatePicker size="small" value={fromDate} onChange={setFromDate} />
+          <DatePicker size="small" value={toDate} onChange={setToDate} />
         </div>
       </div>
 
       {/* SUMMARY */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {summary.map((i, idx) => (
-          <Card key={idx}>
-            <div className="text-gray-500">{i.label}</div>
-            <div className="text-2xl font-bold text-blue-600 mt-2">
+          <Card key={idx} size="small">
+            <div className="text-gray-500 text-sm">{i.label}</div>
+            <div className="text-xl font-bold text-blue-600 mt-1">
               {i.value}
             </div>
           </Card>
@@ -177,7 +162,7 @@ const DashboardCustomer = () => {
       </div>
 
       {compare && (
-        <Card>
+        <Card size="small">
           <div className="font-semibold">
             So với kỳ trước:{" "}
             <span
@@ -192,32 +177,16 @@ const DashboardCustomer = () => {
       )}
 
       {/* CHART */}
-      <Card title="Dòng tiền & Số dư">
-        <div className="h-[380px]">
+      <Card title="Dòng tiền & Số dư" size="small">
+        <div className="h-[260px] lg:h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData}>
               <XAxis dataKey="date" />
               <YAxis />
               <Tooltip content={<CustomTooltip />} />
-
-              <Line
-                dataKey="credit"
-                stroke="#1677ff"
-                strokeWidth={3}
-                name="Tiền vào"
-              />
-              <Line
-                dataKey="debit"
-                stroke="#ff4d4f"
-                strokeWidth={3}
-                name="Tiền ra"
-              />
-              <Line
-                dataKey="balance"
-                stroke="#002766"
-                strokeWidth={4}
-                name="Số dư"
-              />
+              <Line dataKey="credit" stroke="#1677ff" strokeWidth={3} />
+              <Line dataKey="debit" stroke="#ff4d4f" strokeWidth={3} />
+              <Line dataKey="balance" stroke="#002766" strokeWidth={4} />
             </LineChart>
           </ResponsiveContainer>
         </div>

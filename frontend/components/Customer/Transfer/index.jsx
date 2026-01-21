@@ -1,8 +1,8 @@
-import { Button, Card, Form, Input, InputNumber, message, Select } from "antd";
+import { Button, Form, Input, InputNumber, Select, message } from "antd";
 import { useState } from "react";
-import { http, fetchData } from "../../../modules/modules";
-import Customerlayout from "../../Layout/Customerlayout";
 import useSWR from "swr";
+import Customerlayout from "../../Layout/Customerlayout";
+import { http, fetchData } from "../../../modules/modules";
 
 const { Item } = Form;
 
@@ -15,43 +15,36 @@ const Transfer = () => {
   const [form] = Form.useForm();
   const [messageApi, context] = message.useMessage();
 
-  // Lấy thông tin người dùng
   const userInfo = JSON.parse(sessionStorage.getItem("userInfo"));
 
-  // Lấy danh sách ngân hàng (branding)
   const { data: brandings } = useSWR("/api/branding", fetchData, {
     revalidateOnFocus: false,
   });
 
-  // ===== KIỂM TRA NGƯỜI NHẬN =====
   const handleCheckReceiver = async (bankCardNo) => {
     if (!bankCardNo) {
       setReceiverName("");
       return;
     }
-
     try {
       const httpReq = http();
       const res = await httpReq.get(
         `/api/transfer/receiver?bankCardNo=${bankCardNo}`,
       );
       setReceiverName(res.data.fullName);
-    } catch (err) {
+    } catch {
       setReceiverName("");
     }
   };
 
-  // ===== GỬI OTP =====
   const handleSendOTP = async () => {
     try {
       setSendingOTP(true);
       const httpReq = http();
-
       await httpReq.post("/api/transfer/send-otp", {
         accountNo: userInfo.accountNo,
       });
-
-      messageApi.success("OTP đã được gửi qua email");
+      messageApi.success("Mã OTP đã được gửi");
       setOtpSent(true);
     } catch (err) {
       messageApi.error(err?.response?.data?.message || "Gửi OTP thất bại");
@@ -60,12 +53,10 @@ const Transfer = () => {
     }
   };
 
-  // ===== CHUYỂN TIỀN =====
   const onFinish = async (values) => {
     try {
       setLoading(true);
       const httpReq = http();
-
       await httpReq.post("/api/transfer/confirm", {
         fromAccountNo: Number(userInfo.accountNo),
         toBrandingId: values.brandingId,
@@ -74,7 +65,7 @@ const Transfer = () => {
         otp: values.otp,
       });
 
-      messageApi.success("Chuyển tiền thành công!");
+      messageApi.success("Chuyển tiền thành công");
       form.resetFields();
       setReceiverName("");
       setOtpSent(false);
@@ -89,105 +80,136 @@ const Transfer = () => {
     <Customerlayout>
       {context}
 
-      <Card
-        title="Chuyển tiền"
-        className="max-w-lg"
-        extra={
-          <span className="text-gray-500 text-sm">
-            Chuyển tiền đến tài khoản ngân hàng khác
-          </span>
-        }
-      >
-        <Form layout="vertical" form={form} onFinish={onFinish}>
-          {/* ===== NGÂN HÀNG ===== */}
-          <Item
-            label="Ngân hàng"
-            name="brandingId"
-            rules={[{ required: true, message: "Vui lòng chọn ngân hàng" }]}
-          >
-            <Select placeholder="Chọn ngân hàng">
-              {(brandings?.data || brandings || []).map((b) => (
-                <Select.Option key={b._id} value={b._id}>
-                  {b.bankName}
-                </Select.Option>
-              ))}
-            </Select>
-          </Item>
+      {/* NỀN MOMO */}
+      <div className="min-h-screen bg-[#f5f5f7] flex justify-center px-4 py-6">
+        <div className="w-full max-w-md">
+          {/* HEADER */}
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold text-gray-800">Chuyển tiền</h2>
+            <p className="text-sm text-gray-500">
+              Chuyển tiền đến ngân hàng khác
+            </p>
+          </div>
 
-          {/* ===== SỐ THẺ NGƯỜI NHẬN ===== */}
-          <Item
-            label="Số thẻ ngân hàng người nhận"
-            name="bankCardNo"
-            rules={[
-              {
-                required: true,
-                message: "Vui lòng nhập số thẻ ngân hàng",
-              },
-            ]}
-          >
-            <Input
-              placeholder="Nhập số thẻ ngân hàng người nhận"
-              onBlur={(e) => handleCheckReceiver(e.target.value)}
-            />
-          </Item>
+          {/* CARD CHÍNH */}
+          <div className="bg-white rounded-3xl p-5 shadow-sm space-y-5">
+            <Form layout="vertical" form={form} onFinish={onFinish}>
+              {/* NGƯỜI NHẬN */}
+              <div>
+                <p className="font-medium text-gray-700 mb-3">Người nhận</p>
 
-          {/* ===== TÊN NGƯỜI NHẬN ===== */}
-          {receiverName && (
-            <Item label="Tên người nhận">
-              <Input value={receiverName} disabled />
-            </Item>
-          )}
+                <Item
+                  name="brandingId"
+                  rules={[
+                    { required: true, message: "Vui lòng chọn ngân hàng" },
+                  ]}
+                >
+                  <Select
+                    placeholder="Chọn ngân hàng"
+                    size="large"
+                    className="rounded-xl"
+                  >
+                    {(brandings?.data || brandings || []).map((b) => (
+                      <Select.Option key={b._id} value={b._id}>
+                        {b.bankName}
+                      </Select.Option>
+                    ))}
+                  </Select>
+                </Item>
 
-          {/* ===== SỐ TIỀN ===== */}
-          <Item
-            label="Số tiền"
-            name="amount"
-            rules={[{ required: true, message: "Vui lòng nhập số tiền" }]}
-          >
-            <InputNumber
-              className="w-full"
-              min={1}
-              placeholder="Nhập số tiền cần chuyển"
-            />
-          </Item>
+                <Item
+                  name="bankCardNo"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Vui lòng nhập số thẻ người nhận",
+                    },
+                  ]}
+                >
+                  <Input
+                    size="large"
+                    placeholder="Số thẻ người nhận"
+                    className="rounded-xl"
+                    onBlur={(e) => handleCheckReceiver(e.target.value)}
+                  />
+                </Item>
 
-          {/* ===== OTP ===== */}
-          {otpSent && (
-            <Item
-              label="Mã OTP"
-              name="otp"
-              rules={[{ required: true, message: "Vui lòng nhập mã OTP" }]}
-            >
-              <Input placeholder="Nhập mã OTP được gửi qua email" />
-            </Item>
-          )}
+                {receiverName && (
+                  <Item>
+                    <div className="bg-[#fff0f5] text-[#d81b60] rounded-xl px-4 py-3 text-sm font-medium">
+                      {receiverName}
+                    </div>
+                  </Item>
+                )}
+              </div>
 
-          {/* ===== NÚT GỬI OTP ===== */}
-          {!otpSent && (
-            <Button
-              type="dashed"
-              block
-              loading={sendingOTP}
-              onClick={handleSendOTP}
-              className="mb-3"
-            >
-              Gửi OTP
-            </Button>
-          )}
+              {/* GIAO DỊCH */}
+              <div>
+                <p className="font-medium text-gray-700 mb-3">Giao dịch</p>
 
-          {/* ===== XÁC NHẬN CHUYỂN TIỀN ===== */}
-          <Button
-            loading={loading}
-            type="text"
-            htmlType="submit"
-            className="!font-semibold !text-white !bg-blue-500"
-            block
-            disabled={!otpSent}
-          >
-            Xác nhận chuyển tiền
-          </Button>
-        </Form>
-      </Card>
+                <Item
+                  name="amount"
+                  rules={[{ required: true, message: "Vui lòng nhập số tiền" }]}
+                >
+                  <InputNumber
+                    size="large"
+                    className="!w-full rounded-xl"
+                    placeholder="Nhập số tiền (VNĐ)"
+                    min={1}
+                  />
+                </Item>
+
+                {otpSent && (
+                  <Item
+                    name="otp"
+                    rules={[
+                      { required: true, message: "Vui lòng nhập mã OTP" },
+                    ]}
+                  >
+                    <Input
+                      size="large"
+                      placeholder="Nhập mã OTP"
+                      className="rounded-xl"
+                    />
+                  </Item>
+                )}
+              </div>
+
+              {!otpSent && (
+                <Button
+                  type="default"
+                  block
+                  size="large"
+                  loading={sendingOTP}
+                  onClick={handleSendOTP}
+                  className="rounded-xl"
+                >
+                  Gửi mã OTP
+                </Button>
+              )}
+
+              <Button
+                htmlType="submit"
+                block
+                size="large"
+                loading={loading}
+                disabled={!otpSent}
+                className="
+    !bg-[#2563eb]
+    hover:!bg-[#1d4ed8]
+    disabled:!bg-[#93c5fd]
+    !text-white
+    !font-semibold
+    rounded-xl
+    h-12
+  "
+              >
+                Xác nhận chuyển tiền
+              </Button>
+            </Form>
+          </div>
+        </div>
+      </div>
     </Customerlayout>
   );
 };
