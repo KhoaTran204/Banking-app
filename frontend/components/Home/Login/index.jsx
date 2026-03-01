@@ -133,7 +133,7 @@ const Login = () => {
         {/* ẢNH BÊN PHẢI */}
         <div className="hidden md:flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 relative">
           <img
-            src="/bank-img.jpg"
+            src="/dacbanklogo.png"
             alt="Nova Bank"
             className="w-[75%] max-w-sm drop-shadow-2xl rounded-2xl"
           />
