@@ -28,7 +28,7 @@ const CustomTooltip = ({ active, payload, label, unit }) => {
       <div className="font-medium">Ngày: {label}</div>
       {payload.map((p, i) => (
         <div key={i} style={{ color: p.color }}>
-          {p.name}: {p.value.toLocaleString()} {unit}
+          {p.name}: {Number(p.value || 0).toLocaleString()} {unit}
         </div>
       ))}
     </div>
@@ -43,8 +43,10 @@ const Dashboard = ({ data = {}, branch }) => {
   const [accountChart, setAccountChart] = useState([]);
   const [transactionChart, setTransactionChart] = useState([]);
 
+  // ✅ FIX: Tạo state riêng để tổng số tài khoản không bị 0
+  const [totalAccountsUI, setTotalAccountsUI] = useState(0);
+
   const {
-    totalAccounts = 0,
     totalTransactions = 0,
     totalCredit = 0,
     totalDebit = 0,
@@ -54,21 +56,46 @@ const Dashboard = ({ data = {}, branch }) => {
   /* ================= FETCH ================= */
   useEffect(() => {
     const fetchData = async () => {
-      const httpReq = http();
-      const res = await httpReq.get("/api/dashboard/overview", {
-        params: { branch },
-      });
+      try {
+        const httpReq = http();
+        const res = await httpReq.get("/api/dashboard/overview", {
+          params: { branch },
+        });
 
-      const currentYear = dayjs().year();
+        const currentYear = dayjs().year();
 
-      /* FIX: LOẠI NGÀY KHÁC NĂM → HẾT 31/12 */
-      const filterValidYear = (list = []) =>
-        list.filter((i) =>
-          dayjs(`${currentYear}-${i.date}`, "YYYY-DD-MM").isValid(),
+        /* FIX: LOẠI NGÀY KHÁC NĂM → HẾT 31/12 */
+        const filterValidYear = (list = []) =>
+          list.filter((i) =>
+            dayjs(`${currentYear}-${i.date}`, "YYYY-DD-MM").isValid(),
+          );
+
+        const fixedAccountChart = filterValidYear(res.data.accountChart);
+        const fixedTransactionChart = filterValidYear(
+          res.data.transactionChart,
         );
 
-      setAccountChart(filterValidYear(res.data.accountChart));
-      setTransactionChart(filterValidYear(res.data.transactionChart));
+        setAccountChart(fixedAccountChart);
+        setTransactionChart(fixedTransactionChart);
+
+        // ✅ FIX: Tính tổng số tài khoản từ chart (fallback)
+        const totalFromChart = fixedAccountChart.reduce(
+          (sum, item) => sum + Number(item?.value || 0),
+          0,
+        );
+
+        // ✅ Ưu tiên totalAccounts từ API nếu có, không có thì lấy từ chart
+        const totalFromApi = Number(res.data?.totalAccounts);
+
+        setTotalAccountsUI(
+          Number.isFinite(totalFromApi) ? totalFromApi : totalFromChart,
+        );
+      } catch (error) {
+        console.log("Lỗi fetch dashboard:", error);
+        setAccountChart([]);
+        setTransactionChart([]);
+        setTotalAccountsUI(0);
+      }
     };
 
     fetchData();
@@ -108,7 +135,7 @@ const Dashboard = ({ data = {}, branch }) => {
         <Card>
           <div className="text-sm text-gray-500">Tổng số tài khoản</div>
           <div className="text-2xl font-semibold text-blue-600">
-            {totalAccounts}
+            {totalAccountsUI}
           </div>
         </Card>
 
@@ -122,14 +149,14 @@ const Dashboard = ({ data = {}, branch }) => {
         <Card>
           <div className="text-sm text-gray-500">Tổng tiền vào</div>
           <div className="text-2xl font-semibold text-green-600">
-            {totalCredit.toLocaleString()} VND
+            {Number(totalCredit || 0).toLocaleString()} VND
           </div>
         </Card>
 
         <Card>
           <div className="text-sm text-gray-500">Số dư hiện tại</div>
           <div className="text-2xl font-semibold text-blue-600">
-            {balance.toLocaleString()} VND
+            {Number(balance || 0).toLocaleString()} VND
           </div>
         </Card>
       </div>

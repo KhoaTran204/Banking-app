@@ -43,7 +43,7 @@ const getTransactions = async (accountNo) => {
       (t, i) =>
         `${i + 1}. ${t.transactionType === "cr" ? "Nhận" : "Chuyển"} ${
           t.transactionAmount
-        } VND`
+        } VND`,
     )
     .join("\n");
 };
@@ -55,9 +55,9 @@ const getGuideResponse = (intent) => {
   const guides = {
     GUIDE_TRANSFER: `
 Hướng dẫn chuyển tiền:
-① Vào mục Transfer  
+① Vào mục Chuyển tiền  
 ② Nhập số tài khoản người nhận  
-③ Nhập số tiền  
+③ Nhập số tiền cần chuyển 
 ④ Xác nhận bằng mã OTP 
 `,
 

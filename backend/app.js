@@ -34,7 +34,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
-
+// THÊM PREFIX CHO EMAIL / LOGO
+app.use("/public", express.static(path.join(__dirname, "public")));
 // rote level middleware
 app.use("/api/verify-token", verifyRouter);
 app.use("/api/users", userRouter);
