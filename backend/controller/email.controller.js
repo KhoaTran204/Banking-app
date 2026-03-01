@@ -28,11 +28,7 @@ const sendEmail = (req, res) => {
               
               <tr>
                 <td align="center" style="padding:20px">
-<<<<<<< HEAD
                   <img src="cid:novabanklogo" width="140" alt="Nova Bank" />
-=======
-                  <img src="cid:dacbanklogo" width="140" alt="DAC Bank" />
->>>>>>> f530d36b7a79f292db14787a6d9501b58b4c8e2f
                 </td>
               </tr>
 
@@ -66,11 +62,7 @@ const sendEmail = (req, res) => {
 
               <tr>
                 <td align="center" style="background:#f1f1f1;padding:15px;font-size:12px;color:#666">
-<<<<<<< HEAD
                   © 2025 Nova Digital Bank. Mọi quyền được bảo lưu.
-=======
-                  © 2025 DAC Bank. Mọi quyền được bảo lưu.
->>>>>>> f530d36b7a79f292db14787a6d9501b58b4c8e2f
                 </td>
               </tr>
 
@@ -85,7 +77,6 @@ const sendEmail = (req, res) => {
   const mailOption = {
     from: process.env.ADMIN_EMAIL,
     to: email,
-<<<<<<< HEAD
     subject: "Thông tin đăng nhập Nova Bank",
     html: emailTemplate,
     attachments: [

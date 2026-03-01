@@ -1,140 +1,173 @@
 import React, { useState } from "react";
 import {
+  DashOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
-  DashboardOutlined,
-  HistoryOutlined,
-  SwapOutlined,
   LogoutOutlined,
+  BranchesOutlined,
+  SafetyCertificateOutlined,
   UserOutlined,
 } from "@ant-design/icons";
 
-import { Layout, Menu, Avatar, Dropdown } from "antd";
+import { Button, Layout, Menu, theme, Avatar } from "antd";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Cookies from "universal-cookie";
 import Chatbot from "../../Shared/Chatbot";
 
-const { Header, Sider, Content, Footer } = Layout;
 const cookies = new Cookies();
+const { Header, Sider, Content, Footer } = Layout;
 
 const Customerlayout = ({ children }) => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const [collapsed, setCollapsed] = useState(false);
 
   const userInfo = JSON.parse(sessionStorage.getItem("userInfo") || "{}");
 
+  /* ================= ĐĂNG XUẤT ================= */
   const logoutFunc = () => {
     sessionStorage.removeItem("userInfo");
     cookies.remove("authToken");
     navigate("/");
   };
+  console.log(userInfo.profile);
 
-  const menuItems = [
+  /* ================= MENU ================= */
+  const items = [
     {
       key: "/customer",
-      icon: <DashboardOutlined />,
+      icon: <DashOutlined />,
       label: <Link to="/customer">Trang chủ</Link>,
     },
     {
       key: "/customer/transaction",
-      icon: <HistoryOutlined />,
+      icon: <BranchesOutlined />,
       label: <Link to="/customer/transaction">Lịch sử giao dịch</Link>,
     },
     {
       key: "/customer/transfer",
-      icon: <SwapOutlined />,
+      icon: <BranchesOutlined />,
       label: <Link to="/customer/transfer">Chuyển tiền</Link>,
     },
-  ];
-
-  const dropdownItems = [
     {
-      key: "logout",
+      key: "/customer/logout",
       icon: <LogoutOutlined />,
-      label: "Đăng xuất",
-      onClick: logoutFunc,
-      danger: true,
+      label: (
+        <Button
+          type="text"
+          className="!text-gray-300 !font-semibold"
+          onClick={logoutFunc}
+        >
+          Đăng xuất
+        </Button>
+      ),
     },
   ];
 
+  const [collapsed, setCollapsed] = useState(false);
+  const {
+    token: { colorBgContainer, borderRadiusLG },
+  } = theme.useToken();
+
   return (
-    <Layout className="min-h-screen bg-[#F4F7FA]">
-      {/* SIDEBAR */}
-      <Sider
-        trigger={null}
-        collapsible
-        collapsed={collapsed}
-        className="!bg-[#0B1F3A] shadow-2xl"
-      >
-        <div className="h-16 flex items-center justify-center text-white font-bold text-xl tracking-wide">
-          {collapsed ? "DAC" : "DAC BANK"}
+    <Layout className="!min-h-screen">
+      {/* ================= SIDEBAR ================= */}
+      <Sider trigger={null} collapsible collapsed={collapsed}>
+        <div className="h-16 flex items-center justify-center text-white font-bold text-lg">
+          {!collapsed ? "NOVA BANK" : "NB"}
         </div>
 
         <Menu
           theme="dark"
           mode="inline"
           selectedKeys={[pathname]}
-          items={menuItems}
-          className="!bg-[#0B1F3A]"
+          items={items}
         />
       </Sider>
 
-      {/* MAIN */}
+      {/* ================= MAIN ================= */}
       <Layout>
-        {/* HEADER */}
-        <Header className="!bg-white !px-6 flex items-center justify-between shadow-md relative z-50 border-b border-gray-200">
+        {/* ================= HEADER ================= */}
+        <Header
+          className="flex items-center justify-between px-6 shadow-sm"
+          style={{
+            background: colorBgContainer,
+            height: 56,
+            lineHeight: "56px",
+          }}
+        >
+          {/* LEFT */}
           <div className="flex items-center gap-4">
-            <button
+            <Button
+              type="text"
+              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
               onClick={() => setCollapsed(!collapsed)}
-              className="text-xl text-[#0B1F3A]"
-            >
-              {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-            </button>
+              style={{ fontSize: 18 }}
+            />
 
-            <div className="flex items-center gap-3">
+            {/* BRAND */}
+            <div className="flex items-center gap-2">
               <img
-                src="/dacbanklogo.png"
-                alt="logo"
-                className="h-10 w-10 object-contain"
+                src="/novabanklogo.png"
+                alt="Nova Bank"
+                className="h-12 w-12 object-contain"
               />
-              <span className="font-bold text-[#0B1F3A] text-lg">
-                Ngân hàng số DAC
+              <span className="font-semibold text-gray-800 text-sm md:text-base">
+                Ngân hàng số Nova
               </span>
             </div>
           </div>
-          <Dropdown menu={{ items: dropdownItems }} placement="bottomRight">
-            <div className="flex items-center gap-3">
-              <div className="text-right hidden md:block leading-tight">
-                <div className="text-sm font-semibold text-[#0B1F3A] tracking-normal">
-                  {userInfo?.fullname || "Khách hàng"}
-                </div>
-                <div className="text-xs text-gray-500 mt-0.5 tracking-wide">
-                  STK: ****{String(userInfo?.accountNo || "").slice(-4)}
-                </div>
-              </div>
 
-              <Avatar
-                size={40}
-                src={
-                  userInfo?.profile
-                    ? `http://localhost:8080/${userInfo.profile}`
-                    : undefined
-                }
-                icon={!userInfo?.profile && <UserOutlined />}
-                className="shadow-md"
-              />
+          {/* RIGHT */}
+          <div className="flex items-center gap-3">
+            <div className="text-right hidden md:block leading-tight">
+              <div className="text-sm font-semibold text-gray-700">
+                {userInfo?.fullname || "Khách hàng"}
+              </div>
+              <div className="text-xs text-gray-400">
+                STK: ****{String(userInfo?.accountNo || "").slice(-4)}
+              </div>
             </div>
-          </Dropdown>
+
+            <Avatar
+              size={36}
+              src={
+                userInfo?.profile
+                  ? `http://localhost:8080/${userInfo.profile}`
+                  : undefined
+              }
+              icon={!userInfo?.profile && <UserOutlined />}
+              className="border border-gray-200 shadow-sm"
+            />
+          </div>
         </Header>
 
-        <Content className="m-6">{children}</Content>
+        {/* ================= CONTENT ================= */}
+        <Content
+          style={{
+            margin: "24px 16px",
+            padding: 24,
+            background: colorBgContainer,
+            borderRadius: borderRadiusLG,
+          }}
+        >
+          {children}
+        </Content>
 
-        <Footer className="text-center text-gray-500 bg-transparent text-sm">
-          © 2026 DAC Bank · Hotline 1900 9999 · support@dacbank.vn
+        {/* ================= FOOTER ================= */}
+        <Footer className="text-center text-sm text-gray-400">
+          <div className="font-semibold text-gray-600">
+            © 2026 Nova Digital Bank
+          </div>
+          <div>
+            Hotline: 1900 9999 · Email: support@novabank.vn · www.novabank.vn
+          </div>
+          <div className="mt-1">
+            Giao dịch được bảo mật theo tiêu chuẩn ngân hàng số
+          </div>
         </Footer>
       </Layout>
 
+      {/* ================= CHATBOT ================= */}
       <Chatbot />
     </Layout>
   );
